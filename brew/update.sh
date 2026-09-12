@@ -163,6 +163,10 @@ if [ "$upgrade" = yes ] && [ "$mode" = install ]; then
   fi
   casks="$(brew outdated --cask --quiet | wc -l | tr -d ' ')"
   [ "$casks" -gt 0 ] && warn "$casks casks are outdated — upgrade them with: brew upgrade --cask"
+
+  # The greeting caches this count. Drop it so the next terminal shows what we
+  # just did rather than the number from before the upgrade.
+  rm -f "${XDG_STATE_HOME:-$HOME/.local/state}/davconf/cache-brew-outdated"
 fi
 
 info "Done."
