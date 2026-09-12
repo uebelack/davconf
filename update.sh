@@ -6,11 +6,19 @@
 #                               #   + the macOS system tweaks
 #   ./update.sh dev cloud       # …with the named brew profiles instead of
 #                               #   the ones in ~/.config/davconf/profiles
-#   ./update.sh --no-pull       # skip the git pull
+#   ./update.sh --no-pull       # skip the git pull (escape hatch, see below)
 #
 # Safe to run any time: every step is idempotent, so the first run on a new
 # machine installs everything and later runs only apply what has changed.
 # zsh/autoupdate.zsh runs this once a day in the background.
+#
+# The git pull always runs. Config committed on another machine only reaches
+# this one through it, so a quietly skipped pull leaves the machine silently
+# stale — which is the one failure this script exists to prevent. It is
+# --ff-only, and that is what makes running it unconditionally safe: git
+# refuses rather than rewriting history or overwriting a modified file. When
+# the pull cannot happen, the run continues with the checked-out version and
+# says so loudly, with git's own reason. --no-pull is the deliberate opt-out.
 
 set -euo pipefail
 DAVCONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -28,15 +36,44 @@ for arg in "$@"; do
 done
 
 # --- pick up config committed on another machine -----------------------------
-# Only fast-forward, and only with a clean tree: this must never touch work in
-# progress. Anything unusual is reported and skipped, not forced.
-if [ "$pull" = yes ] && [ -d "$DAVCONF_DIR/.git" ]; then
-  if ! git -C "$DAVCONF_DIR" diff --quiet HEAD 2>/dev/null; then
-    warn "Working tree has uncommitted changes — skipping git pull."
-  elif ! git -C "$DAVCONF_DIR" pull --ff-only --quiet 2>/dev/null; then
-    warn "Could not fast-forward — skipping git pull (diverged or offline?)."
+# This runs on every invocation. A dirty working tree is no longer a reason to
+# skip it: --ff-only never rewrites history, and git aborts the pull by itself
+# if an incoming change would overwrite a locally modified file. Guarding
+# against that up front only meant a machine with one stray edit stopped
+# receiving config updates entirely, without anyone noticing.
+#
+# Failure is never fatal — offline, no remote, diverged history — but it is
+# always reported, with git's own message, so a machine that has stopped
+# updating is visible in the log rather than looking like a clean run.
+if [ "$pull" = no ]; then
+  warn "Skipping the git pull (--no-pull) — this run may apply stale config."
+elif [ "${DAVCONF_PULLED:-0}" = 1 ]; then
+  : # already pulled by the run that re-executed us, see below
+elif [ ! -d "$DAVCONF_DIR/.git" ]; then
+  warn "$DAVCONF_DIR is not a git checkout — cannot pull, using it as it is."
+else
+  info "Pulling the latest config"
+  before="$(git -C "$DAVCONF_DIR" rev-parse HEAD)"
+
+  if pull_out="$(git -C "$DAVCONF_DIR" pull --ff-only 2>&1)"; then
+    after="$(git -C "$DAVCONF_DIR" rev-parse HEAD)"
+    if [ "$before" = "$after" ]; then
+      info "Already current ($(git -C "$DAVCONF_DIR" log -1 --format='%h %s'))"
+    else
+      info "Updated to $(git -C "$DAVCONF_DIR" log -1 --format='%h %s')"
+
+      # The pull just rewrote this file underneath a running bash, which reads
+      # a script incrementally and would carry on at a now-meaningless byte
+      # offset. Start over from the new version — nothing has run yet, so this
+      # repeats no work. It cannot loop: the second run's pull finds nothing
+      # new, and DAVCONF_PULLED skips its network round-trip anyway.
+      info "Restarting with the updated update.sh"
+      export DAVCONF_PULLED=1
+      exec "$DAVCONF_DIR/update.sh" ${@+"$@"}
+    fi
   else
-    info "Repo up to date ($(git -C "$DAVCONF_DIR" log -1 --format=%h))"
+    warn "git pull failed — continuing with the checked-out version:"
+    printf '%s\n' "$pull_out" | sed 's/^/    /'
   fi
 fi
 
@@ -50,6 +87,10 @@ if ! command -v brew >/dev/null; then
     [ -x "$prefix/bin/brew" ] && eval "$("$prefix/bin/brew" shellenv)" && break
   done
 fi
+
+# Straight after brew: a JDK a Brewfile just installed is registered with jenv
+# in the same run, rather than sitting on disk unusable until noticed.
+"$DAVCONF_DIR/jenv/update.sh"
 
 "$DAVCONF_DIR/zsh/update.sh"
 

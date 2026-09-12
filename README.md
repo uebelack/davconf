@@ -47,8 +47,22 @@ The background run has no terminal, so anything needing a password fails rather
 than hanging — a cask that wants `sudo` will show up in the log as an error.
 Run `./update.sh` by hand to deal with those.
 
-The pull is skipped when the working tree is dirty or history has diverged; it
-is `--ff-only`, so it never touches local work. `./update.sh --no-pull` skips it.
+The pull runs on every invocation — config committed on another machine reaches
+this one no other way, so a quietly skipped pull is how a machine goes stale
+without anyone noticing. It is `--ff-only`, which is what makes running it
+unconditionally safe: git refuses rather than rewriting history or overwriting
+a modified file, so local work is never touched. A dirty working tree is
+therefore no reason to skip it; git fast-forwards the files it can and aborts
+by itself if a local edit is in the way.
+
+When the pull cannot happen — offline, diverged history, a local edit blocking
+an incoming change — the run continues with the checked-out version and says so
+with git's own message, so it shows up in `update.log` instead of looking like
+a clean run. `./update.sh --no-pull` is the deliberate opt-out.
+
+If the pull brought in a new `update.sh`, the script re-executes itself so the
+rest of the run uses the version that was just fetched, not the one bash
+started reading. Nothing has run at that point, so no work is repeated.
 
 One manual step on a brand-new machine: Homebrew keeps third-party tap trust in
 `~/.homebrew/trust.json`, which no Brewfile can set, so `Brewfile.privat` needs
@@ -63,6 +77,7 @@ brew trust --tap arthur-ficial/tap
 | ----------- | -------------------------------------------------------- |
 | `update.sh` | Pulls this repo, then runs every module below, in order    |
 | `brew/`     | Homebrew itself, plus per-machine package profiles         |
+| `jenv/`     | Registers every installed JDK with jenv                    |
 | `zsh/`      | oh-my-zsh, spaceship prompt, plugins, shared `.zshrc`     |
 | `mac/`      | macOS system defaults — the settings a fresh Mac gets wrong |
 
@@ -121,6 +136,26 @@ missing packages but upgrade nothing.
 To add a package, edit the right Brewfile — or dump the current machine's state
 with `brew bundle dump --file=-` and cherry-pick. Note that `dump` omits
 formulae installed from custom taps, so check its output before trusting it.
+
+### jenv
+
+Homebrew installs JDKs and tells jenv about none of them, in two different
+shapes: casks land in `/Library/Java/JavaVirtualMachines`, formulae in
+`$(brew --prefix)/opt/openjdk*/libexec` where even `java_home -V` cannot see
+them. `jenv/update.sh` finds both and registers whatever is missing.
+
+```sh
+./jenv/update.sh           # add any JDK jenv does not know yet
+./jenv/update.sh --check   # list what would be added, add nothing
+```
+
+It runs straight after `brew/update.sh`, so a JDK a Brewfile just installed is
+selectable in the same run. Already-registered JDKs are left alone, so it is
+safe to run repeatedly.
+
+Formula JDKs are registered by their stable `opt/` path rather than the Cellar
+directory it resolves to — the Cellar path has the version number in it and
+disappears on the next upgrade, which would leave jenv pointing at nothing.
 
 ### zsh
 
