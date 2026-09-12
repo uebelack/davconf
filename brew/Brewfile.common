@@ -21,10 +21,6 @@ brew "pyenv-virtualenv"
 brew "pipx"
 brew "virtualenv"
 
-# cloud CLIs, not tied to any one client
-brew "awscli"
-cask "gcloud-cli"
-
 cask "ghostty"
 cask "iterm2"
 cask "raycast"
