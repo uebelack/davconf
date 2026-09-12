@@ -15,7 +15,6 @@ brew "virtualenv"
 brew "pipx"
 
 # jvm
-brew "openjdk@21"
 brew "maven"       # the `chuck` alias
 cask "temurin@17"
 cask "temurin@25"

@@ -1,4 +1,8 @@
-# Personal machines only — not for work machines.
+# Machines with no install restrictions.
+#
+# Not just personal apps: work machines are not permitted to install gh,
+# docker, Cursor and friends, so anything that cannot go on a restricted
+# machine belongs here rather than in common.
 
 # Third-party tap. Homebrew keeps trust in a machine-local ~/.homebrew/trust.json,
 # which a Brewfile cannot set, so on a brand-new machine run once:

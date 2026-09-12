@@ -76,7 +76,7 @@ split into profiles so each machine installs only what it is actually for:
 | `common`  | Always applied: the bare terminal — neovim, lazygit, gnupg, Ghostty, the Nerd Font |
 | `dev`     | Toolchains: the version managers, Python, JVM              |
 | `cloud`   | AWS, Azure, gcloud, Terraform                              |
-| `privat`  | Everything else: GUI apps, general CLI tools, local AI, Spotify |
+| `privat`  | Machines with no install restrictions: GUI apps, general CLI tools, local AI, Spotify |
 
 **Which profiles a machine gets is machine-local and not committed.** It lives
 in `~/.config/davconf/profiles`, one name per line — so the same repo sets up a
@@ -92,6 +92,11 @@ privat
 `brew/update.sh` writes that file the first time it runs, with every profile
 commented out, so there is something to edit rather than a blank page.
 `common` is always applied and does not belong in it.
+
+`privat` is not only about Spotify and WhatsApp: work machines are not allowed
+to install things like `gh`, `docker` or Cursor, so anything that cannot go on
+a restricted machine lives there. Keep `common` to what is installable
+everywhere — do not "tidy" those entries back into it.
 
 ```sh
 ./brew/update.sh                 # common + this machine's profiles
