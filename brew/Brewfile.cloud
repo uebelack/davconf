@@ -1,7 +1,5 @@
-# Cloud provider CLIs and infrastructure tooling.
+# Cloud provider CLIs.
 
 brew "awscli"
-brew "azure-cli"
-brew "terraform"
 
 cask "gcloud-cli"

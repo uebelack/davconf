@@ -15,12 +15,6 @@ brew "ffmpeg"
 brew "qrtool"
 brew "cdk"         # curses development kit (not the AWS one)
 
-# python — no language profile of its own, these are used everywhere
-brew "pyenv"
-brew "pyenv-virtualenv"
-brew "pipx"
-brew "virtualenv"
-
 cask "ghostty"
 cask "iterm2"
 cask "raycast"

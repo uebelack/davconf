@@ -1,0 +1,6 @@
+# Python toolchain.
+
+brew "pyenv"       # zshrc runs `pyenv init` when present
+brew "pyenv-virtualenv"
+brew "virtualenv"
+brew "pipx"

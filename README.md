@@ -73,13 +73,14 @@ split into profiles so each machine installs only what it is actually for:
 
 | Profile      | Contents                                              |
 | ------------ | ----------------------------------------------------- |
-| `common`     | Always applied: shell tools, terminals, editors, Python |
+| `common`     | Always applied: shell tools, terminals, editors         |
 | `javascript` | nvm, serve, vite-plus                                  |
+| `python`     | pyenv, virtualenv, pipx                                |
 | `ruby`       | rbenv                                                  |
 | `java`       | jenv, openjdk, maven, Temurin                          |
 | `mobile`     | iOS / Android / Flutter tooling                        |
-| `cloud`      | AWS, Azure, gcloud, Terraform                          |
-| `nag`        | ODBC — NAG work machines (pair with `java` and `cloud`) |
+| `cloud`      | AWS, gcloud                                            |
+| `nag`        | Azure, Terraform, ODBC — pair with `java`               |
 | `pf`         | PF machines                                            |
 | `privat`     | Personal only: local AI, Spotify, WhatsApp             |
 
