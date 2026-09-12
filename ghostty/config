@@ -1,0 +1,95 @@
+# ╔══════════════════════════════════════════════════════════════╗
+# ║   G H O S T T Y  ::  S Y N T H W A V E   ' 8 5                ║
+# ║   outrun / miami-nights / neon-sunset aesthetic               ║
+# ╚══════════════════════════════════════════════════════════════╝
+# Reload in-app with: Cmd+Shift+, (or restart Ghostty)
+
+# ── Theme / Colors ─────────────────────────────────────────────
+# Deep indigo midnight sky with hot-magenta foreground + neon glow
+background = 1a1033
+foreground = f92aad
+cursor-color = 00f0ff
+cursor-text = 1a1033
+selection-background = ff8b39
+selection-foreground = 1a1033
+
+# The 16 ANSI colors — neon sunset on midnight purple
+# black / bright-black
+palette = 0=#241b3a
+palette = 8=#495495
+# red / bright-red  (hot coral)
+palette = 1=#fe4450
+palette = 9=#ff6e6e
+# green / bright-green  (laser lime)
+palette = 2=#72f1b8
+palette = 10=#a6ffcb
+# yellow / bright-yellow  (sunset gold)
+palette = 3=#fede5d
+palette = 11=#fff59d
+# blue / bright-blue  (electric azure)
+palette = 4=#03edf9
+palette = 12=#6effff
+# magenta / bright-magenta  (neon pink)
+palette = 5=#ff7edb
+palette = 13=#ffb8f3
+# cyan / bright-cyan  (miami teal)
+palette = 6=#00f0ff
+palette = 14=#8bfff5
+# white / bright-white
+palette = 7=#d4c8ff
+palette = 15=#ffffff
+
+# ── Cursor ─────────────────────────────────────────────────────
+cursor-style = block
+cursor-style-blink = true
+shell-integration-features = no-cursor,sudo,title,ssh-env,ssh-terminfo
+
+# ── Window / Transparency / Glow ───────────────────────────────
+background-opacity = 0.90
+background-blur = 48
+window-padding-x = 16
+window-padding-y = 14
+window-padding-balance = true
+window-theme = dark
+macos-titlebar-style = transparent
+unfocused-split-opacity = 0.55
+
+# Hot-pink neon divider bleeding between splits
+split-divider-color = ff7edb
+
+# ── Font ───────────────────────────────────────────────────────
+# Falls back gracefully if these aren't installed.
+font-family = "JetBrains Mono"
+font-family = "Menlo"
+font-size = 14
+font-thicken = true
+font-feature = calt
+font-feature = liga
+adjust-cell-height = 12%
+# Subtle "minimum contrast" so dim text stays readable on purple
+minimum-contrast = 1.1
+
+# ── Behavior ───────────────────────────────────────────────────
+scrollback-limit = 100000000
+mouse-hide-while-typing = true
+copy-on-select = clipboard
+confirm-close-surface = false
+window-save-state = always
+clipboard-read = allow
+clipboard-write = allow
+clipboard-trim-trailing-spaces = true
+
+# ── Keybindings ────────────────────────────────────────────────
+# tmux-style splits + quick actions
+keybind = cmd+d=new_split:right
+keybind = cmd+shift+d=new_split:down
+keybind = cmd+shift+enter=toggle_split_zoom
+keybind = cmd+shift+h=goto_split:left
+keybind = cmd+shift+l=goto_split:right
+keybind = cmd+shift+k=goto_split:top
+keybind = cmd+shift+j=goto_split:bottom
+keybind = cmd+shift+r=reload_config
+keybind = cmd+enter=toggle_fullscreen
+
+# ── The optional "cruising the neon strip" title ───────────────
+title = ▓▒░ ◤ OUTRUN ◢ ░▒▓

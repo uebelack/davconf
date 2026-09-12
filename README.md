@@ -79,6 +79,7 @@ brew trust --tap arthur-ficial/tap
 | `brew/`     | Homebrew itself, plus per-machine package profiles         |
 | `jenv/`     | Registers every installed JDK with jenv                    |
 | `zsh/`      | oh-my-zsh, spaceship prompt, plugins, shared `.zshrc`     |
+| `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      |
 | `mac/`      | macOS system defaults — the settings a fresh Mac gets wrong |
 
 ### brew
@@ -177,6 +178,27 @@ disappears on the next upgrade, which would leave jenv pointing at nothing.
   [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
 - a symlink `~/.zshrc` -> `zsh/zshrc` (any existing file is backed up first)
 - `zsh/autoupdate.zsh`, the daily background refresh described above
+
+### ghostty
+
+`ghostty/update.sh` links `~/.config/ghostty/config` to `ghostty/config` in this
+repo — the theme, font, padding, keybindings and scrollback settings for the
+[Ghostty](https://ghostty.org) terminal. An existing real file is backed up
+first, and a link that already points here is left alone.
+
+```sh
+./ghostty/update.sh          # link the config
+./ghostty/update.sh --check  # report what would change, change nothing
+```
+
+Because it is a symlink, editing `ghostty/config` is enough: reload a running
+Ghostty with `cmd+shift+r` and the change applies without another run.
+
+`~/.config/ghostty/config` is the path this repo owns. Ghostty also reads
+`~/Library/Application Support/com.mitchellh.ghostty/config` on macOS and merges
+both, so leave that one absent — settings split across the two are the kind of
+thing that takes an afternoon to debug. Check what Ghostty actually ended up
+with using `ghostty +show-config`.
 
 ### mac
 

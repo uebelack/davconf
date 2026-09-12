@@ -3,7 +3,7 @@
 # Bring this machine up to date with the config in this repo.
 #
 #   ./update.sh                 # Homebrew + this machine's packages + zsh
-#                               #   + the macOS system tweaks
+#                               #   + the Ghostty config + the macOS system tweaks
 #   ./update.sh dev cloud       # …with the named brew profiles instead of
 #                               #   the ones in ~/.config/davconf/profiles
 #   ./update.sh --no-pull       # skip the git pull (escape hatch, see below)
@@ -93,6 +93,11 @@ fi
 "$DAVCONF_DIR/jenv/update.sh"
 
 "$DAVCONF_DIR/zsh/update.sh"
+
+# Terminal configuration. Just a symlink, so it is cheap and cannot fail in a
+# way that matters — but it goes after zsh, since the two are read together the
+# next time a terminal opens.
+"$DAVCONF_DIR/ghostty/update.sh"
 
 # macOS system defaults. No-op on anything else, and a no-op here too unless a
 # setting has actually drifted — it restarts only the apps whose settings changed.
