@@ -33,6 +33,7 @@ one takes an atomic lock. Tune it in `~/.zshrc.local`:
 DAVCONF_AUTO_UPDATE=0                  # switch it off
 DAVCONF_UPDATE_INTERVAL=86400          # seconds between runs
 DAVCONF_UPDATE_PROFILES="dev privat"   # brew profiles to include
+DAVCONF_UPDATE_UPGRADE=0               # install missing, but upgrade nothing
 ```
 
 State lives in `~/.local/state/davconf`: `last-update` (timestamp of the last
@@ -85,7 +86,17 @@ split so a work machine need not install personal apps:
 ```
 
 Missing packages get installed; existing ones stay at their current version
-unless you pass `--upgrade`. To add a package, edit the Brewfile — or dump the
+unless you pass `--upgrade`, which also runs a full `brew upgrade` of every
+outdated formula — `brew bundle --upgrade` alone would only touch packages
+named in a Brewfile and leave their dependencies behind, which is most of what
+`brew outdated` reports. Casks are left alone: upgrading them can need a
+password, and the daily update runs with no terminal to type one into.
+
+The daily auto-update passes `--upgrade`, so the machine keeps itself current
+on its own. Set `DAVCONF_UPDATE_UPGRADE=0` in `~/.zshrc.local` to install
+missing packages but upgrade nothing.
+
+To add a package, edit the Brewfile — or dump the
 current machine's state with `brew bundle dump --file=- ` and cherry-pick.
 Note that `dump` omits formulae installed from custom taps, so check its output
 before trusting it.

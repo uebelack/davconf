@@ -22,6 +22,7 @@ export LANGSMITH_PROJECT="test"
 # DAVCONF_AUTO_UPDATE=0                  # switch it off
 # DAVCONF_UPDATE_INTERVAL=86400          # seconds between runs
 # DAVCONF_UPDATE_PROFILES="dev privat"   # brew profiles to include
+# DAVCONF_UPDATE_UPGRADE=0               # install missing, but upgrade nothing
 
 # --- terminal greeting -------------------------------------------------------
 # Synthwave sun + weather + machine vitals on every new terminal.

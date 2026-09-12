@@ -8,6 +8,7 @@
 #   DAVCONF_AUTO_UPDATE=0          disable entirely
 #   DAVCONF_UPDATE_INTERVAL=86400  seconds between runs
 #   DAVCONF_UPDATE_PROFILES="dev privat"   brew profiles to include
+#   DAVCONF_UPDATE_UPGRADE=0       install what is missing, upgrade nothing
 #
 # State lives in ${XDG_STATE_HOME:-~/.local/state}/davconf:
 #   last-update  timestamp of the last attempt
@@ -69,6 +70,12 @@ _davconf_autoupdate() {
   local -a profiles
   profiles=( ${=DAVCONF_UPDATE_PROFILES:-} )
 
+  # Upgrade outdated packages too, so the count in the greeting trends to zero
+  # instead of growing forever. Set DAVCONF_UPDATE_UPGRADE=0 to only install
+  # what is missing.
+  local -a extra
+  [[ ${DAVCONF_UPDATE_UPGRADE:-1} == 1 ]] && extra=( --upgrade )
+
   print "davconf: updating in the background (log: $log)"
 
   # &! backgrounds and disowns; ignoring HUP additionally keeps the run alive
@@ -77,7 +84,7 @@ _davconf_autoupdate() {
     trap '' HUP
     {
       print "=== davconf update $(date) ==="
-      $repo/update.sh $profiles
+      $repo/update.sh $extra $profiles
     } || : >| $state/failed
     rm -rf $lock
   } >|$log 2>&1 &!

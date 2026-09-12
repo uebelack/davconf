@@ -7,7 +7,7 @@
 #   ./brew/update.sh dev privat      # core + Brewfile.dev + Brewfile.privat
 #   ./brew/update.sh --all           # every Brewfile in this directory
 #   ./brew/update.sh --check dev     # report what is missing, install nothing
-#   ./brew/update.sh --upgrade       # also upgrade packages that are outdated
+#   ./brew/update.sh --upgrade       # also upgrade every outdated formula
 #
 # Homebrew itself is installed first if it is missing.
 #
@@ -17,14 +17,15 @@
 # Brewfile.privat    personal machines only
 #
 # Missing packages are installed; already-installed ones are left at their
-# current version unless --upgrade is given. Keeping the machine up to date is
-# `brew upgrade`'s job, not this script's.
+# current version unless --upgrade is given, which additionally runs a full
+# `brew upgrade` of all formulae. The daily auto-update passes --upgrade.
 
 set -euo pipefail
 
 BREW_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 info() { printf '\033[1;34m==>\033[0m %s\n' "$1"; }
+warn() { printf '\033[1;33m==>\033[0m %s\n' "$1"; }
 
 # --- homebrew itself ---------------------------------------------------------
 
@@ -81,8 +82,28 @@ for f in "${files[@]}"; do
     brew bundle check --verbose --no-upgrade --file="$f" || true
   else
     info "Installing $name"
-    brew bundle install "${bundle_args[@]}" --file="$f"
+    # ${a[@]+…}: on bash 3.2 (what macOS ships) an empty array under `set -u`
+    # is an unbound variable, and bundle_args is empty whenever --upgrade is on.
+    brew bundle install ${bundle_args[@]+"${bundle_args[@]}"} --file="$f"
   fi
 done
+
+# brew bundle --upgrade only touches packages named in a Brewfile, which leaves
+# their dependencies behind — most of what `brew outdated` reports. Upgrade
+# everything so the count actually trends to zero.
+#
+# Formulae only: upgrading casks can need a password, and this runs unattended
+# from the daily auto-update where there is no terminal to type one into.
+if [ "$upgrade" = yes ] && [ "$mode" = install ]; then
+  outdated="$(brew outdated --formula --quiet | wc -l | tr -d ' ')"
+  if [ "$outdated" -gt 0 ]; then
+    info "Upgrading $outdated outdated formulae"
+    brew upgrade --formula
+  else
+    info "All formulae up to date"
+  fi
+  casks="$(brew outdated --cask --quiet | wc -l | tr -d ' ')"
+  [ "$casks" -gt 0 ] && warn "$casks casks are outdated — upgrade them with: brew upgrade --cask"
+fi
 
 info "Done."
