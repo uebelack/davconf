@@ -6,8 +6,8 @@ and again whenever you want it back in sync with this repo.
 ## Setup, and keeping machines in sync
 
 ```sh
-git clone git@github.com:uebelack/davconf.git ~/.davconf
-cd ~/.davconf
+git clone git@github.com:uebelack/davconf.git ~/davconf
+cd ~/davconf
 ./update.sh              # core setup
 ./brew/update.sh --list  # then pick this machine's package profiles
 ```
@@ -64,6 +64,7 @@ brew trust --tap arthur-ficial/tap
 | `update.sh` | Pulls this repo, then runs every module below, in order    |
 | `brew/`     | Homebrew itself, plus per-machine package profiles         |
 | `zsh/`      | oh-my-zsh, spaceship prompt, plugins, shared `.zshrc`     |
+| `mac/`      | macOS system defaults — the settings a fresh Mac gets wrong |
 
 ### brew
 
@@ -131,6 +132,40 @@ formulae installed from custom taps, so check its output before trusting it.
   [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
 - a symlink `~/.zshrc` -> `zsh/zshrc` (any existing file is backed up first)
 - `zsh/autoupdate.zsh`, the daily background refresh described above
+
+### mac
+
+`mac/update.sh` writes the macOS defaults a fresh machine gets wrong. Every
+setting is compared before it is written, so a machine already in the desired
+state changes nothing — and only the apps whose settings changed are restarted,
+which is what keeps the daily background run from bouncing Finder or the Dock
+for a no-op.
+
+| Setting                     | Value                                        |
+| --------------------------- | -------------------------------------------- |
+| Finder view style           | list (`FXPreferredViewStyle = Nlsv`)         |
+| Hidden files                | visible (`AppleShowAllFiles`)                |
+| File extensions             | always shown (`AppleShowAllExtensions`)      |
+| Dock                        | hides automatically (`autohide`)             |
+| Dock icon size              | 35pt (`tilesize`, slider spans 16–128)       |
+
+```sh
+./mac/update.sh                      # apply every tweak
+./mac/update.sh --check              # report what differs, change nothing
+./mac/update.sh --reset-folder-views # also forget per-folder view settings
+```
+
+Finder stores a view style *per folder*, in that folder's `.DS_Store`, and a
+saved one wins over the global preference. So list view only takes effect for
+folders you have never adjusted by hand. `--reset-folder-views` deletes those
+files under `$HOME` so every folder falls back to the default — at the cost of
+the icon positions and window sizes saved alongside them. It is opt-in, stays
+on the boot volume (`find -xdev`, so external disks and network shares are left
+alone), and never runs from the daily auto-update.
+
+To add a tweak, add a `set_default` line to `mac/update.sh` with the domain,
+key, type and a short description; the comparison, reporting and app restart
+come for free.
 
 ## Terminal greeting
 

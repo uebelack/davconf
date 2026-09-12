@@ -3,6 +3,7 @@
 # Bring this machine up to date with the config in this repo.
 #
 #   ./update.sh                 # Homebrew + this machine's packages + zsh
+#                               #   + the macOS system tweaks
 #   ./update.sh dev cloud       # …with the named brew profiles instead of
 #                               #   the ones in ~/.config/davconf/profiles
 #   ./update.sh --no-pull       # skip the git pull
@@ -51,3 +52,7 @@ if ! command -v brew >/dev/null; then
 fi
 
 "$DAVCONF_DIR/zsh/update.sh"
+
+# macOS system defaults. No-op on anything else, and a no-op here too unless a
+# setting has actually drifted — it restarts only the apps whose settings changed.
+"$DAVCONF_DIR/mac/update.sh"

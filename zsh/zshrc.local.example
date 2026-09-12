@@ -3,7 +3,7 @@
 # Copy to ~/.zshrc.local and fill in real values:
 #   cp zsh/zshrc.local.example ~/.zshrc.local && chmod 600 ~/.zshrc.local
 
-# source "$HOME/.davconf/zsh/.zshrc.privat"
+# source "$HOME/davconf/zsh/zshrc.privat"
 
 export OPENAI_API_KEY=
 export ANTHROPIC_API_KEY=
