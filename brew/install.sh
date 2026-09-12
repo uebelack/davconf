@@ -3,7 +3,7 @@
 # Install Homebrew packages from the Brewfiles in this directory.
 #
 #   ./brew/install.sh                 # core only (brew/Brewfile)
-#   ./brew/install.sh dev personal    # core + Brewfile.dev + Brewfile.personal
+#   ./brew/install.sh dev privat      # core + Brewfile.dev + Brewfile.privat
 #   ./brew/install.sh --all           # every Brewfile in this directory
 #   ./brew/install.sh --check dev     # report what is missing, install nothing
 #   ./brew/install.sh --upgrade       # also upgrade packages that are outdated
@@ -11,7 +11,7 @@
 # Brewfile           always installed — core packages for every machine
 # Brewfile.zsh       shell dependencies (zsh/install.sh installs these itself)
 # Brewfile.dev       development toolchains, cloud CLIs, GUI dev tools
-# Brewfile.personal  personal machines only
+# Brewfile.privat    personal machines only
 #
 # Missing packages are installed; already-installed ones are left at their
 # current version unless --upgrade is given. Keeping the machine up to date is

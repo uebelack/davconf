@@ -9,7 +9,7 @@ an installer updates rather than reinstalls.
 git clone git@github.com:uebelack/davconf.git ~/.davconf
 cd ~/.davconf
 ./install.sh              # core setup
-./install.sh dev personal # …or with extra package profiles
+./install.sh dev privat   # …or with extra package profiles
 ```
 
 Then fill in `~/.zshrc.local` and open a new shell.
@@ -32,11 +32,11 @@ split so a work machine need not install personal apps:
 | `Brewfile`          | Core — always installed                               |
 | `Brewfile.zsh`      | Shell dependencies (`zsh/install.sh` installs these)   |
 | `Brewfile.dev`      | Toolchains, cloud CLIs, GUI dev tools                 |
-| `Brewfile.personal` | Personal machines only                                |
+| `Brewfile.privat`   | Personal machines only                                |
 
 ```sh
 ./brew/install.sh                 # core only
-./brew/install.sh dev personal    # core + the named profiles
+./brew/install.sh dev privat      # core + the named profiles
 ./brew/install.sh --all           # everything
 ./brew/install.sh --check --all   # what is missing? install nothing
 ```

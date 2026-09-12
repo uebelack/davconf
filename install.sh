@@ -3,7 +3,7 @@
 # Bootstrap this machine.
 #
 #   ./install.sh                 # Homebrew + core packages + zsh
-#   ./install.sh dev personal    # …plus the named brew profiles
+#   ./install.sh dev privat      # …plus the named brew profiles
 #
 # Every step is idempotent: re-running updates rather than reinstalls.
 

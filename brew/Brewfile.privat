@@ -1,5 +1,5 @@
 # Personal machines only — not for work machines.
-#   brew bundle --file=brew/Brewfile.personal
+#   brew bundle --file=brew/Brewfile.privat
 
 brew "ollama", restart_service: :changed
 brew "openai-whisper"
