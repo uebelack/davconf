@@ -17,4 +17,5 @@ brew "pipx"
 # jvm
 brew "maven"       # the `chuck` alias
 cask "temurin@17"
+cask "temurin@21"
 cask "temurin@25"
