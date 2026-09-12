@@ -216,6 +216,15 @@ three seconds) and when it finished. Inside a repo the path is shown from the
 repo root, so `…/davconf` is the root of this one and `…/davconf/zsh` a
 directory in it.
 
+What it shows is git and language versions, and nothing else: the branch and
+working-tree state, and the runtime version of whatever the directory is a
+project of — `⬢` node, `◈` ruby, `◉` python, `☕` java, `◆` dart, `⬡` rust,
+`◇` go, `□` the package version itself. The cloud and container sections
+spaceship offers (aws, gcloud, kubectl, terraform, docker context) are
+deliberately left out: what they report is rarely what the next command depends
+on. Adding one back is a line in `SPACESHIP_PROMPT_ORDER` plus its colour
+underneath.
+
 It is sourced *before* oh-my-zsh, which matters: every spaceship section takes
 its defaults the moment the theme loads, and only for settings that are not
 already set.

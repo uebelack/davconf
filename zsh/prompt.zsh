@@ -46,8 +46,11 @@ spaceship_neon_open() {
   spaceship::section --color "#ff7edb" --symbol "╭─ "
 }
 
-# Trimmed to the runtimes this machine actually has (brew/Brewfile.*) — every
-# section left in the order is one more check per prompt, async or not.
+# Git and language versions, nothing else. The cloud and container sections
+# (aws, gcloud, kubectl, terraform, docker_context) are deliberately absent:
+# what they report is rarely what the next command depends on, and every
+# section left in the order is one more check per prompt, async or not. Adding
+# one back is a line here plus its colour below.
 SPACESHIP_PROMPT_ORDER=(
   neon_open      # ╭─
   user           # only over ssh
@@ -63,12 +66,7 @@ SPACESHIP_PROMPT_ORDER=(
   golang
   rust
   java
-  docker_context
-  kubectl
-  terraform
-  aws
-  gcloud
-  venv
+  venv           # an activated python virtualenv
   jobs           # background jobs
   exit_code      # what the last command returned, when it was not 0
   line_sep       # ↵
@@ -118,7 +116,8 @@ SPACESHIP_GIT_STATUS_AHEAD="⇡"
 SPACESHIP_GIT_STATUS_BEHIND="⇣"
 SPACESHIP_GIT_STATUS_DIVERGED="⇕"
 
-SPACESHIP_PACKAGE_SYMBOL="□ "
+SPACESHIP_PACKAGE_PREFIX=""              # its own default is "is ", the one
+SPACESHIP_PACKAGE_SYMBOL="□ "            # section that ignores DEFAULT_PREFIX
 SPACESHIP_PACKAGE_COLOR="$sw_lilac"
 
 SPACESHIP_NODE_SYMBOL="⬢ "
@@ -139,22 +138,6 @@ SPACESHIP_JAVA_SYMBOL="☕ "
 SPACESHIP_JAVA_COLOR="$sw_neon"
 SPACESHIP_VENV_SYMBOL="◉ "
 SPACESHIP_VENV_COLOR="$sw_gold"
-
-# docker_context has no symbol of its own and takes its colour from the docker
-# section, so the glyph rides in the prefix — which renders outside the section
-# colour, hence the explicit %F.
-SPACESHIP_DOCKER_CONTEXT_PREFIX="%F{$sw_azure}▣%f "
-SPACESHIP_DOCKER_CONTEXT_SUFFIX=" "
-SPACESHIP_DOCKER_COLOR="$sw_azure"
-SPACESHIP_KUBECTL_SYMBOL="⎈ "
-SPACESHIP_KUBECTL_COLOR="$sw_azure"
-SPACESHIP_KUBECTL_CONTEXT_COLOR="$sw_azure"
-SPACESHIP_TERRAFORM_SYMBOL="△ "
-SPACESHIP_TERRAFORM_COLOR="$sw_neon"
-SPACESHIP_AWS_SYMBOL="▲ "
-SPACESHIP_AWS_COLOR="$sw_orange"
-SPACESHIP_GCLOUD_SYMBOL="▲ "
-SPACESHIP_GCLOUD_COLOR="$sw_orange"
 
 SPACESHIP_JOBS_SYMBOL="◍"
 SPACESHIP_JOBS_COLOR="$sw_gold"
