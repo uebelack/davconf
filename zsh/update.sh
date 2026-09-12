@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 #
-# Install the davconf zsh environment: oh-my-zsh, the spaceship theme, the
-# custom plugins and the shared .zshrc. Safe to run repeatedly — every step
-# is idempotent and existing files are backed up, never clobbered.
+# Install or update the davconf zsh environment: oh-my-zsh, the spaceship
+# theme, the custom plugins and the shared .zshrc. Safe to run any time —
+# every step is idempotent, oh-my-zsh and the plugins are pulled to their
+# latest version, and existing files are backed up rather than clobbered.
 
 set -euo pipefail
 
@@ -22,7 +23,7 @@ command -v git >/dev/null || { echo "git is not installed" >&2; exit 1; }
 # Tools the shared .zshrc hooks into. The .zshrc guards each one, so a missing
 # tool degrades gracefully — but the shell is only complete with them present.
 if ! command -v brew >/dev/null; then
-  warn "Homebrew not found — run ./install_basis.sh first. Skipping packages."
+  warn "Homebrew not found — run ./brew/update.sh first. Skipping packages."
 else
   info "Installing Homebrew packages"
   brew bundle install --no-upgrade --file="$DAVCONF_DIR/brew/Brewfile.zsh"

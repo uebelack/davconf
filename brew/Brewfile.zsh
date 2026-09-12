@@ -1,5 +1,5 @@
 # Shell dependencies — everything zsh/zshrc hooks into.
-# Installed by zsh/install.sh; listed here so all package lists live together.
+# Installed by zsh/update.sh; listed here so all package lists live together.
 
 brew "nvm"
 brew "rbenv"

@@ -1,44 +1,49 @@
 # davconf
 
-My machine configuration, in modules. Everything here is idempotent — re-running
-an installer updates rather than reinstalls.
+My machine configuration, in modules. Run `./update.sh` to set a machine up,
+and again whenever you want it back in sync with this repo.
 
-## Setup on a new machine
+## Setup, and keeping machines in sync
 
 ```sh
 git clone git@github.com:uebelack/davconf.git ~/.davconf
 cd ~/.davconf
-./install.sh              # core setup
-./install.sh dev privat   # …or with extra package profiles
+./update.sh              # core setup
+./update.sh dev privat   # …or with extra package profiles
 ```
 
 Then fill in `~/.zshrc.local` and open a new shell.
 
+`update.sh` is the same command for setting a machine up and for keeping it
+current — it is idempotent, so run it again after pulling to apply whatever
+changed. Each module has its own `update.sh` if you only want that part.
+
 ## Modules
 
-| Module             | What it does                                          |
-| ------------------ | ----------------------------------------------------- |
-| `install_basis.sh` | Installs Homebrew                                      |
-| `brew/`            | Package lists (Brewfiles), split into profiles         |
-| `zsh/`             | oh-my-zsh, spaceship prompt, plugins, shared `.zshrc`  |
+| Module      | What it does                                             |
+| ----------- | -------------------------------------------------------- |
+| `update.sh` | Runs every module below, in order                         |
+| `brew/`     | Homebrew itself, plus package lists split into profiles   |
+| `zsh/`      | oh-my-zsh, spaceship prompt, plugins, shared `.zshrc`     |
 
 ### brew
 
+`brew/update.sh` installs Homebrew first if the machine does not have it.
 Packages live in [Brewfiles](https://docs.brew.sh/Brew-Bundle-and-Brewfile),
 split so a work machine need not install personal apps:
 
 | File                | Contents                                             |
 | ------------------- | ---------------------------------------------------- |
 | `Brewfile`          | Core — always installed                               |
-| `Brewfile.zsh`      | Shell dependencies (`zsh/install.sh` installs these)   |
+| `Brewfile.zsh`      | Shell dependencies (`zsh/update.sh` installs these)   |
 | `Brewfile.dev`      | Toolchains, cloud CLIs, GUI dev tools                 |
 | `Brewfile.privat`   | Personal machines only                                |
 
 ```sh
-./brew/install.sh                 # core only
-./brew/install.sh dev privat      # core + the named profiles
-./brew/install.sh --all           # everything
-./brew/install.sh --check --all   # what is missing? install nothing
+./brew/update.sh                 # core only
+./brew/update.sh dev privat      # core + the named profiles
+./brew/update.sh --all           # everything
+./brew/update.sh --check --all   # what is missing? install nothing
 ```
 
 Missing packages get installed; existing ones stay at their current version
@@ -49,7 +54,7 @@ before trusting it.
 
 ### zsh
 
-`zsh/install.sh` installs:
+`zsh/update.sh` installs, and on later runs updates:
 
 - Homebrew packages the shell hooks into: `nvm`, `rbenv`, `pyenv-virtualenv`,
   `jenv`, `direnv`, `lazygit`, `gnupg`, `neovim`
@@ -75,8 +80,8 @@ still gets a working shell.
 ## Secrets
 
 **Nothing secret goes in this repo.** API keys live in `~/.zshrc.local`, which
-git ignores. `zsh/zshrc.local.example` is the template; the installer copies it
-into place with mode `600` on first run.
+git ignores. `zsh/zshrc.local.example` is the template; `zsh/update.sh` copies
+it into place with mode `600` on the first run.
 
 Copy the real file between machines out of band (password manager, `scp`) —
 never through git.

@@ -18,7 +18,7 @@ ZSH_THEME="spaceship"
 
 # Standard plugins live in $ZSH/plugins, custom ones in $ZSH/custom/plugins.
 # zsh-autosuggestions and zsh-syntax-highlighting are installed by
-# zsh/install.sh; the rest ship with oh-my-zsh.
+# zsh/update.sh; the rest ship with oh-my-zsh.
 plugins=(git nvm rbenv pyenv zsh-syntax-highlighting zsh-autosuggestions docker)
 
 source "$ZSH/oh-my-zsh.sh"
