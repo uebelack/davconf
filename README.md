@@ -81,6 +81,7 @@ brew trust --tap arthur-ficial/tap
 | `zsh/`      | oh-my-zsh, spaceship prompt, plugins, `.zshrc` + `.zprofile` |
 | `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      |
 | `mac/`      | macOS system defaults — the settings a fresh Mac gets wrong |
+| `projects/` | Manual checkout scripts — **not** run by `update.sh`        |
 
 ### brew
 
@@ -244,6 +245,34 @@ alone), and never runs from the daily auto-update.
 To add a tweak, add a `set_default` line to `mac/update.sh` with the domain,
 key, type and a short description; the comparison, reporting and app restart
 come for free.
+
+### projects
+
+Scripts that check out a multi-repo project in one go. These are the one part
+of this repo `update.sh` does **not** run: which projects a machine wants on
+disk is a per-machine decision, so you call these by hand.
+
+```sh
+./projects/snailmail.sh            # clone what is missing, pull the rest
+./projects/snailmail.sh --check    # report what would happen, change nothing
+./projects/snailmail.sh --no-pull  # clone what is missing, touch nothing else
+```
+
+`projects/snailmail.sh` creates `~/projects/snailmail` and clones the six repos
+the project is made of — `briefe.app`, `snailmail-backend`, `snailmail-ios`,
+`snailmail-android` and the two screenshot generators. Set `PROJECTS_DIR` to
+check out somewhere other than `~/projects`.
+
+Existing checkouts are fast-forwarded, never reset, so local work is never at
+risk — a repo that cannot be fast-forwarded is reported and left alone. One
+repo failing does not stop the others; the summary names what failed and the
+exit status is non-zero. All six are private and cloned over SSH, so on a fresh
+machine the first thing to check after a wall of failures is
+`ssh -T git@github.com`.
+
+The repo list is a `<directory> <URL>` table at the top of the script. The
+directory is not always the repo name — `snailmail-ios` comes from the repo
+called plainly `snailmail` — which is why both are spelled out.
 
 ## Terminal greeting
 
