@@ -1,8 +1,0 @@
-# NAG work machines.
-#
-# The projects under ~/projects/nag are Maven/JVM on Azure infrastructure, so
-# select the `java` profile alongside this one.
-
-brew "azure-cli"
-brew "terraform"
-brew "unixodbc"    # ODBC driver manager, for the SQL Server clients

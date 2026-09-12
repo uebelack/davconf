@@ -32,7 +32,7 @@ one takes an atomic lock. Tune it in `~/.zshrc.local`:
 ```sh
 DAVCONF_AUTO_UPDATE=0                  # switch it off
 DAVCONF_UPDATE_INTERVAL=86400          # seconds between runs
-DAVCONF_UPDATE_PROFILES="dev nag"      # override ~/.config/davconf/profiles
+DAVCONF_UPDATE_PROFILES="dev cloud"    # override ~/.config/davconf/profiles
 DAVCONF_UPDATE_UPGRADE=0               # install missing, but upgrade nothing
 ```
 
@@ -75,10 +75,8 @@ split into profiles so each machine installs only what it is actually for:
 | --------- | ---------------------------------------------------------- |
 | `common`  | Always applied: shell tools, terminals, editors            |
 | `dev`     | Toolchains: node, python, ruby, JVM, mobile                |
-| `cloud`   | AWS, gcloud                                                |
-| `nag`     | Azure, Terraform, ODBC — NAG work machines                 |
-| `pf`      | PF machines                                                |
-| `privat`  | Personal only: local AI, Spotify, WhatsApp                 |
+| `cloud`   | AWS, Azure, gcloud, Terraform                              |
+| `privat`  | Personal only: local AI, ODBC, Spotify, WhatsApp           |
 
 **Which profiles a machine gets is machine-local and not committed.** It lives
 in `~/.config/davconf/profiles`, one name per line — so the same repo sets up a
@@ -88,7 +86,7 @@ work laptop and a personal one differently:
 # ~/.config/davconf/profiles
 dev
 cloud
-nag
+privat
 ```
 
 `brew/update.sh` writes that file the first time it runs, with every profile

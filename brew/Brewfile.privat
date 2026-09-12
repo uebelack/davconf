@@ -10,6 +10,8 @@ brew "ollama", restart_service: :changed
 brew "openai-whisper"
 brew "arthur-ficial/tap/apfel"   # on-device Apple FoundationModels CLI
 
+brew "unixodbc"    # ODBC driver manager, for the SQL Server clients
+
 cask "spotify"
 cask "whatsapp"
 cask "caffeine"

@@ -7,7 +7,7 @@
 # Knobs, set them in ~/.zshrc.local (before this file is sourced):
 #   DAVCONF_AUTO_UPDATE=0          disable entirely
 #   DAVCONF_UPDATE_INTERVAL=86400  seconds between runs
-#   DAVCONF_UPDATE_PROFILES="dev nag"     override the machine's brew profiles
+#   DAVCONF_UPDATE_PROFILES="dev cloud"     override the machine's brew profiles
 #                                  (normally ~/.config/davconf/profiles)
 #   DAVCONF_UPDATE_UPGRADE=0       install what is missing, upgrade nothing
 #

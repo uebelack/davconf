@@ -21,7 +21,7 @@ export LANGSMITH_PROJECT="test"
 
 # DAVCONF_AUTO_UPDATE=0                  # switch it off
 # DAVCONF_UPDATE_INTERVAL=86400          # seconds between runs
-# DAVCONF_UPDATE_PROFILES="dev nag"     # override ~/.config/davconf/profiles
+# DAVCONF_UPDATE_PROFILES="dev cloud"     # override ~/.config/davconf/profiles
 # DAVCONF_UPDATE_UPGRADE=0               # install missing, but upgrade nothing
 
 # --- terminal greeting -------------------------------------------------------
