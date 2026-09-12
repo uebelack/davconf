@@ -1,7 +1,10 @@
 # Development toolchains, cloud CLIs and GUI dev tools.
 #   brew bundle --file=brew/Brewfile.dev
 
-tap "arthur-ficial/tap", "https://github.com/Arthur-Ficial/homebrew-tap"
+# Third-party tap. Homebrew keeps trust in a machine-local ~/.homebrew/trust.json,
+# which a Brewfile cannot set, so on a brand-new machine run once:
+#   brew trust --tap arthur-ficial/tap
+tap "arthur-ficial/tap", "https://github.com/Arthur-Ficial/homebrew-tap", trusted: true
 
 # JVM
 brew "openjdk@21"

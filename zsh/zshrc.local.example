@@ -14,3 +14,11 @@ export LANGSMITH_TRACING=true
 export LANGSMITH_ENDPOINT=https://eu.api.smith.langchain.com
 export LANGSMITH_API_KEY=
 export LANGSMITH_PROJECT="test"
+
+# --- daily auto-update -------------------------------------------------------
+# The first interactive shell of the day refreshes this machine in the
+# background. Uncomment to change that.
+
+# DAVCONF_AUTO_UPDATE=0                  # switch it off
+# DAVCONF_UPDATE_INTERVAL=86400          # seconds between runs
+# DAVCONF_UPDATE_PROFILES="dev privat"   # brew profiles to include

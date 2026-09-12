@@ -34,9 +34,11 @@ export NVM_DIR="$HOME/.nvm"
 alias flushdns='sudo killall -HUP mDNSResponder'
 alias lg='lazygit'
 
-# Personal hosts and project shortcuts. ${0:A:h} resolves the ~/.zshrc symlink
-# back to this repo, so the file is found wherever davconf is cloned.
-[[ -f "${0:A:h}/zshrc.privat" ]] && source "${0:A:h}/zshrc.privat"
+# Personal hosts and project shortcuts. %x is the file being sourced, so this
+# resolves the ~/.zshrc symlink back to the repo wherever davconf is cloned.
+# ($0 does NOT work here: in a startup .zshrc it is the shell, not the file.)
+davconf_dir=${${(%):-%x}:A:h}
+[[ -f "$davconf_dir/zshrc.privat" ]] && source "$davconf_dir/zshrc.privat"
 
 # --------------------------------------------------------------------- prompt
 fpath=($fpath "$HOME/.zfunctions")
@@ -84,6 +86,13 @@ export PATH="$PATH:$HOME/.local/bin"
 # ----------------------------------------------------------- machine-local
 # API keys and per-machine overrides. Not in git. See zshrc.local.example.
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
+
+# ------------------------------------------------------------- auto-update
+# Refreshes this machine once a day, in the background. Sourced after
+# zshrc.local so its DAVCONF_* knobs are already set. See that file to turn
+# it off or change the interval.
+[[ -f "$davconf_dir/autoupdate.zsh" ]] && source "$davconf_dir/autoupdate.zsh"
+unset davconf_dir
 
 # THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"

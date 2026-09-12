@@ -15,14 +15,52 @@ cd ~/.davconf
 Then fill in `~/.zshrc.local` and open a new shell.
 
 `update.sh` is the same command for setting a machine up and for keeping it
-current — it is idempotent, so run it again after pulling to apply whatever
-changed. Each module has its own `update.sh` if you only want that part.
+current — it is idempotent, so run it again any time. It fast-forwards this
+repo first, so config committed on another machine lands here. Each module has
+its own `update.sh` if you only want that part.
+
+## Daily auto-update
+
+The first interactive shell of the day runs `update.sh` in the background, so
+every machine drifts back into sync on its own. Shell startup is not blocked:
+the run is detached and survives closing the terminal, and a note points at the
+log. If the run fails, the next shell says so, once.
+
+Only one run happens per day no matter how many terminals you open — the first
+one takes an atomic lock. Tune it in `~/.zshrc.local`:
+
+```sh
+DAVCONF_AUTO_UPDATE=0                  # switch it off
+DAVCONF_UPDATE_INTERVAL=86400          # seconds between runs
+DAVCONF_UPDATE_PROFILES="dev privat"   # brew profiles to include
+```
+
+State lives in `~/.local/state/davconf`: `last-update` (timestamp of the last
+attempt), `update.log` (output of the most recent run) and `failed` (present
+when that run exited non-zero).
+
+To force a run now: `rm ~/.local/state/davconf/last-update` and open a shell,
+or just run `./update.sh`.
+
+The background run has no terminal, so anything needing a password fails rather
+than hanging — a cask that wants `sudo` will show up in the log as an error.
+Run `./update.sh` by hand to deal with those.
+
+The pull is skipped when the working tree is dirty or history has diverged; it
+is `--ff-only`, so it never touches local work. `./update.sh --no-pull` skips it.
+
+One manual step on a brand-new machine: Homebrew keeps third-party tap trust in
+`~/.homebrew/trust.json`, which no Brewfile can set, so `Brewfile.dev` needs
+
+```sh
+brew trust --tap arthur-ficial/tap
+```
 
 ## Modules
 
 | Module      | What it does                                             |
 | ----------- | -------------------------------------------------------- |
-| `update.sh` | Runs every module below, in order                         |
+| `update.sh` | Pulls this repo, then runs every module below, in order    |
 | `brew/`     | Homebrew itself, plus package lists split into profiles   |
 | `zsh/`      | oh-my-zsh, spaceship prompt, plugins, shared `.zshrc`     |
 
@@ -63,6 +101,7 @@ before trusting it.
 - [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) and
   [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
 - a symlink `~/.zshrc` -> `zsh/zshrc` (any existing file is backed up first)
+- `zsh/autoupdate.zsh`, the daily background refresh described above
 
 ## Configuration tiers
 
