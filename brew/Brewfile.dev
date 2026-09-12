@@ -1,0 +1,29 @@
+# Development toolchains — everything needed to actually build things.
+#
+# Grouped by language for readability, but installed as one profile: a machine
+# that writes code generally wants all of it.
+
+# version managers — zshrc initialises each one only when it is present
+brew "nvm"
+brew "pyenv"
+brew "pyenv-virtualenv"
+brew "rbenv"
+brew "jenv"
+
+# javascript
+brew "serve"       # static http server
+brew "vite-plus"   # web dev toolchain
+
+# python
+brew "virtualenv"
+brew "pipx"
+
+# jvm
+brew "openjdk@21"
+brew "maven"       # the `chuck` alias
+cask "temurin@17"
+cask "temurin@25"
+
+# mobile — the Android SDK and fvm install outside Homebrew; zshrc puts
+# $ANDROID_SDK_ROOT/platform-tools and ~/fvm/default/bin on $PATH
+brew "swiftformat"

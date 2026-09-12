@@ -33,6 +33,7 @@ export NVM_DIR="$HOME/.nvm"
 # -------------------------------------------------------------------- aliases
 alias flushdns='sudo killall -HUP mDNSResponder'
 alias lg='lazygit'
+alias vi='nvim'
 
 # Personal hosts and project shortcuts. %x is the file being sourced, so this
 # resolves the ~/.zshrc symlink back to the repo wherever davconf is cloned.

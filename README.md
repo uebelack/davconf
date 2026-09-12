@@ -32,7 +32,7 @@ one takes an atomic lock. Tune it in `~/.zshrc.local`:
 ```sh
 DAVCONF_AUTO_UPDATE=0                  # switch it off
 DAVCONF_UPDATE_INTERVAL=86400          # seconds between runs
-DAVCONF_UPDATE_PROFILES="java nag"     # override ~/.config/davconf/profiles
+DAVCONF_UPDATE_PROFILES="dev nag"      # override ~/.config/davconf/profiles
 DAVCONF_UPDATE_UPGRADE=0               # install missing, but upgrade nothing
 ```
 
@@ -71,18 +71,14 @@ brew trust --tap arthur-ficial/tap
 Packages live in [Brewfiles](https://docs.brew.sh/Brew-Bundle-and-Brewfile),
 split into profiles so each machine installs only what it is actually for:
 
-| Profile      | Contents                                              |
-| ------------ | ----------------------------------------------------- |
-| `common`     | Always applied: shell tools, terminals, editors         |
-| `javascript` | nvm, serve, vite-plus                                  |
-| `python`     | pyenv, virtualenv, pipx                                |
-| `ruby`       | rbenv                                                  |
-| `java`       | jenv, openjdk, maven, Temurin                          |
-| `mobile`     | iOS / Android / Flutter tooling                        |
-| `cloud`      | AWS, gcloud                                            |
-| `nag`        | Azure, Terraform, ODBC — pair with `java`               |
-| `pf`         | PF machines                                            |
-| `privat`     | Personal only: local AI, Spotify, WhatsApp             |
+| Profile   | Contents                                                   |
+| --------- | ---------------------------------------------------------- |
+| `common`  | Always applied: shell tools, terminals, editors            |
+| `dev`     | Toolchains: node, python, ruby, JVM, mobile                |
+| `cloud`   | AWS, gcloud                                                |
+| `nag`     | Azure, Terraform, ODBC — NAG work machines                 |
+| `pf`      | PF machines                                                |
+| `privat`  | Personal only: local AI, Spotify, WhatsApp                 |
 
 **Which profiles a machine gets is machine-local and not committed.** It lives
 in `~/.config/davconf/profiles`, one name per line — so the same repo sets up a
@@ -90,9 +86,9 @@ work laptop and a personal one differently:
 
 ```sh
 # ~/.config/davconf/profiles
-java
+dev
+cloud
 nag
-javascript
 ```
 
 `brew/update.sh` writes that file the first time it runs, with every profile
@@ -101,7 +97,7 @@ commented out, so there is something to edit rather than a blank page.
 
 ```sh
 ./brew/update.sh                 # common + this machine's profiles
-./brew/update.sh java ruby       # common + the named profiles (ignores the file)
+./brew/update.sh dev cloud       # common + the named profiles (ignores the file)
 ./brew/update.sh --all           # common + every profile
 ./brew/update.sh --list          # which profiles exist, which are selected
 ./brew/update.sh --check         # what is missing? install nothing

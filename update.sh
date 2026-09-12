@@ -3,7 +3,7 @@
 # Bring this machine up to date with the config in this repo.
 #
 #   ./update.sh                 # Homebrew + this machine's packages + zsh
-#   ./update.sh java ruby       # …with the named brew profiles instead of
+#   ./update.sh dev cloud       # …with the named brew profiles instead of
 #                               #   the ones in ~/.config/davconf/profiles
 #   ./update.sh --no-pull       # skip the git pull
 #

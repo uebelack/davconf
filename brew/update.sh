@@ -4,7 +4,7 @@
 # Safe to run any time; missing packages are added, the rest left alone.
 #
 #   ./brew/update.sh                 # common + this machine's profiles
-#   ./brew/update.sh java ruby       # common + the named profiles (ignores the file)
+#   ./brew/update.sh dev cloud       # common + the named profiles (ignores the file)
 #   ./brew/update.sh --all           # common + every profile
 #   ./brew/update.sh --list          # which profiles exist, which are selected
 #   ./brew/update.sh --check         # report what is missing, install nothing
