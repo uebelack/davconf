@@ -80,6 +80,7 @@ brew trust --tap arthur-ficial/tap
 | `jenv/`     | Registers every installed JDK with jenv                    |
 | `zsh/`      | oh-my-zsh, spaceship prompt, plugins, `.zshrc` + `.zprofile` |
 | `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      |
+| `chrome/`   | The Synthwave '85 Chrome theme, and how to load it          |
 | `mac/`      | macOS system defaults — the settings a fresh Mac gets wrong |
 
 ### brew
@@ -190,6 +191,57 @@ oh-my-zsh's pyenv plugin greets every new terminal with "Found pyenv, but it is
 badly configured". `zprofile` also loads `brew shellenv`, since macOS leaves
 `/opt/homebrew/bin` off the default `$PATH` and `zshrc` has not run yet.
 
+#### The prompt
+
+`zsh/prompt.zsh` configures spaceship in the Synthwave '85 palette — the same
+hexes as `ghostty/config` and the greeting sun, so the terminal, the prompt and
+the browser are one palette rather than three that rhyme.
+
+```
+╭─ …/davconf   main ✱+?  ⬢ 24.14.1              2.4s · 14:32
+╰─▸ git push
+```
+
+Two lines on purpose: a deep path and a busy git status stay off the line you
+type on, so the command always starts in the same column. The magenta frame and
+caret are structural, the path is cyan, the branch gold, anything wrong coral —
+including the caret itself, which turns coral when the last command failed. The
+right side is what you only want after the fact: how long the command took (over
+three seconds) and when it finished. Inside a repo the path is shown from the
+repo root, so `…/davconf` is the root of this one and `…/davconf/zsh` a
+directory in it.
+
+It is sourced *before* oh-my-zsh, which matters: every spaceship section takes
+its defaults the moment the theme loads, and only for settings that are not
+already set.
+
+`zsh/colors.zsh` does the same for everything the prompt does not cover — the
+line as you type it (a command turns cyan only once zsh can actually find it,
+so a typo stays coral), the autosuggestion, the completion menu and `ls`. It is
+sourced *after* oh-my-zsh, since the plugins it loads set those same variables.
+
+#### Startup time
+
+Shells open in about 0.6s. They used to take 1.3s, and all of the difference
+was nvm: the oh-my-zsh `nvm` plugin sources `nvm.sh` on every start, which takes
+half a second to do one thing that matters — put the default node version on
+`$PATH`. `zshrc` now does that part itself by reading `~/.nvm/alias/default` and
+globbing for the matching version directory, no forks, about a millisecond;
+`nvm` itself is a stub function that loads the real thing on first use and
+re-runs your command. `node`, `npm` and globally installed packages are on
+`$PATH` from the start exactly as before.
+
+Worth knowing when this gets slow again: `zsh/update.sh` does not profile
+anything for you, but
+
+```sh
+ZDOTDIR=$(mktemp -d) sh -c 'printf "zmodload zsh/zprof\nsource ~/.zshrc\nzprof | head -20\n" > $ZDOTDIR/.zshrc; zsh -i -c exit'
+```
+
+names the expensive function outright. Ignore `compinit` and `compdump` in that
+output — the throwaway `ZDOTDIR` sends oh-my-zsh's completion dump somewhere
+new, so it rebuilds it every time you profile and never in a real shell.
+
 ### ghostty
 
 `ghostty/update.sh` links `~/.config/ghostty/config` to `ghostty/config` in this
@@ -244,6 +296,31 @@ alone), and never runs from the daily auto-update.
 To add a tweak, add a `set_default` line to `mac/update.sh` with the domain,
 key, type and a short description; the comparison, reporting and app restart
 come for free.
+
+### chrome
+
+`chrome/theme` is a Chrome theme in the same Synthwave '85 palette as
+`ghostty/config` and the greeting — midnight-indigo frame with a magenta and
+cyan glow, neon-pink tab text, cyan toolbar icons, and an outrun sun over a
+perspective grid on the new-tab page.
+
+```sh
+./chrome/update.sh          # rebuild the images if they are out of date
+./chrome/update.sh --check  # report what would change, change nothing
+```
+
+Chrome loads an unpacked extension only through its own UI — no flag, file or
+preference does it — so the first run on a machine prints the one manual step:
+chrome://extensions → Developer mode → Load unpacked → `chrome/theme`. After
+that the module detects the theme in Chrome's preferences and goes quiet. The
+theme stays unpacked, so Chrome reads it from this checkout on every start:
+leave the directory where it is, and a `git pull` reaches the browser the next
+time it restarts. `touch ~/.config/davconf/no-chrome-theme` on a machine that
+does not want it.
+
+The three PNGs are committed so a fresh checkout can load the theme straight
+away. They are drawn by `chrome/theme-art.py` — stdlib only, no Pillow — which
+`update.sh` re-runs whenever the script is newer than what it produced.
 
 ## Terminal greeting
 

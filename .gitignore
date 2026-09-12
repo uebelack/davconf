@@ -1,2 +1,6 @@
 .DS_Store
 *.local
+
+# Chrome compiles the loaded theme and caches it inside the extension
+# directory. Its own build artifact, rewritten whenever the theme changes.
+chrome/theme/Cached Theme.pak

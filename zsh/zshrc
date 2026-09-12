@@ -6,6 +6,12 @@
 #
 # Statement order matters: it determines $PATH precedence. Keep it.
 
+# Where this repo is checked out. %x is the file being sourced, so this
+# resolves the ~/.zshrc symlink back to the repo wherever davconf lives.
+# ($0 does NOT work here: in a startup .zshrc it is the shell, not the file.)
+# Needed this early because the prompt config below is sourced before oh-my-zsh.
+davconf_dir=${${(%):-%x}:A:h}
+
 export PATH="$HOME/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"
 
 export PATH="$HOME/.rbenv/bin:$PATH"
@@ -16,29 +22,70 @@ export ZSH="$HOME/.oh-my-zsh"
 
 ZSH_THEME="spaceship"
 
+# The Synthwave '85 prompt. Before oh-my-zsh on purpose: spaceship's sections
+# take their defaults the moment the theme loads, and only for settings that
+# are not already set.
+[[ -f "$davconf_dir/prompt.zsh" ]] && source "$davconf_dir/prompt.zsh"
+
 # Standard plugins live in $ZSH/plugins, custom ones in $ZSH/custom/plugins.
 # zsh-autosuggestions and zsh-syntax-highlighting are installed by
 # zsh/update.sh; the rest ship with oh-my-zsh.
-plugins=(git nvm rbenv pyenv zsh-syntax-highlighting zsh-autosuggestions docker)
+#
+# No nvm plugin: it sources nvm.sh on every start, which costs half a second
+# for one directory on $PATH. See the node section below for what replaces it.
+plugins=(git rbenv pyenv zsh-syntax-highlighting zsh-autosuggestions docker)
 
 source "$ZSH/oh-my-zsh.sh"
+
+# The rest of the palette: the line you type, the completion menu, ls. After
+# oh-my-zsh, because the plugins it loads set these same variables.
+[[ -f "$davconf_dir/colors.zsh" ]] && source "$davconf_dir/colors.zsh"
 
 # ----------------------------------------------------------- user configuration
 export EDITOR=nvim
 
+# ---------------------------------------------------------------------- node
+# Sourcing nvm.sh takes ~500ms of every single shell, and all it does up front
+# is put one directory on $PATH. So do that part here — read the default alias
+# and resolve it by globbing, no forks, about a millisecond — and leave nvm
+# itself for the first command that actually needs it. node, npm and anything
+# installed globally are on $PATH immediately, exactly as before.
 export NVM_DIR="$HOME/.nvm"
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"
-[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && . "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+
+() {
+  local aliases=$NVM_DIR/alias target hops=0
+  [[ -r $aliases/default ]] || return
+  target=$(<$aliases/default)
+  # default can point at another alias (lts/*, stable) — follow the chain, but
+  # never in circles.
+  while [[ -r $aliases/$target ]] && (( hops++ < 5 )); do
+    target=$(<$aliases/$target)
+  done
+  # Numeric glob sort, so v24.9.0 does not outrank v24.14.1 the way it would
+  # alphabetically.
+  local -a installed=($NVM_DIR/versions/node/v${target#v}*(/Nn))
+  (( $#installed )) && path=(${installed[-1]}/bin $path)
+}
+
+# nvm itself, on first use. The stub replaces itself with the real thing and
+# then re-runs the call that woke it, so `nvm use 20` works from a cold shell.
+nvm() {
+  unfunction nvm
+  local script
+  for script in /opt/homebrew/opt/nvm/nvm.sh "$NVM_DIR/nvm.sh"; do
+    [[ -s $script ]] && source "$script" && break
+  done
+  [[ -s /opt/homebrew/opt/nvm/etc/bash_completion.d/nvm ]] &&
+    source /opt/homebrew/opt/nvm/etc/bash_completion.d/nvm
+  nvm "$@"
+}
 
 # -------------------------------------------------------------------- aliases
 alias flushdns='sudo killall -HUP mDNSResponder'
 alias lg='lazygit'
 alias vi='nvim'
 
-# Personal hosts and project shortcuts. %x is the file being sourced, so this
-# resolves the ~/.zshrc symlink back to the repo wherever davconf is cloned.
-# ($0 does NOT work here: in a startup .zshrc it is the shell, not the file.)
-davconf_dir=${${(%):-%x}:A:h}
+# Personal hosts and project shortcuts.
 [[ -f "$davconf_dir/zshrc.privat" ]] && source "$davconf_dir/zshrc.privat"
 
 # --------------------------------------------------------------------- prompt
