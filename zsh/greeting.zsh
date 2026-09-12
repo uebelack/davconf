@@ -56,7 +56,7 @@ _davconf_greet() {
   local weather brewout brewknown=0
   _cache weather 1800 curl -fsS --max-time 8 "wttr.in/${loc}?format=%c%t+%w&m"
   weather=$REPLY
-  _cache brew-outdated 3600 brew outdated --quiet && brewknown=1
+  _cache brew-outdated 900 brew outdated --quiet && brewknown=1
   brewout=$REPLY
 
   # Uptime from the boot clock — parsing `uptime` is a format-guessing game.

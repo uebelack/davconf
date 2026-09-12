@@ -14,9 +14,10 @@
 # ~/.config/davconf/profiles, one name per line. Brewfile.common is always
 # applied on top of whatever is selected.
 #
-# Missing packages are installed; already-installed ones are left at their
-# current version unless --upgrade is given, which additionally runs a full
-# `brew upgrade` of all formulae. The daily auto-update passes --upgrade.
+# brew bundle only installs what is missing. --upgrade additionally runs a full
+# `brew upgrade` of every formula; casks are reported but never upgraded, since
+# that needs a password the unattended daily run cannot supply. The daily
+# auto-update passes --upgrade.
 
 set -euo pipefail
 
@@ -128,10 +129,24 @@ for p in ${profiles[@]+"${profiles[@]}"}; do
   files+=("$f")
 done
 
-# Without --upgrade, only install what is missing. brew bundle otherwise
-# upgrades every outdated package in the file as a side effect.
-bundle_args=()
-[ "$upgrade" = yes ] || bundle_args+=(--no-upgrade)
+# brew bundle only ever installs what is missing. Upgrading is the separate
+# `brew upgrade --formula` step below, so that casks are never upgraded
+# automatically: a cask upgrade runs `sudo rm` to remove the old app, which
+# cannot work from the unattended daily run where there is no tty for the
+# password. Dropping --no-upgrade here would quietly reintroduce that.
+bundle_args=(--no-upgrade)
+
+# The greeting caches the outdated count. Drop it however this script exits —
+# including a failure part-way through — so the next terminal never reports a
+# figure from before the upgrade.
+if [ "$upgrade" = yes ] && [ "$mode" = install ]; then
+  trap 'rm -f "${XDG_STATE_HOME:-$HOME/.local/state}/davconf/cache-brew-outdated"' EXIT
+fi
+
+# A profile that fails must not take the rest of the run down with it: the
+# remaining profiles, the upgrade step and the zsh module all still matter.
+# Failures are collected and reported, and the script exits non-zero at the end.
+failed_profiles=()
 
 for f in "${files[@]}"; do
   name="$(basename "$f")"
@@ -141,9 +156,10 @@ for f in "${files[@]}"; do
     brew bundle check --verbose --no-upgrade --file="$f" || true
   else
     info "Installing $name"
-    # ${a[@]+…}: on bash 3.2 (what macOS ships) an empty array under `set -u`
-    # is an unbound variable, and bundle_args is empty whenever --upgrade is on.
-    brew bundle install ${bundle_args[@]+"${bundle_args[@]}"} --file="$f"
+    brew bundle install "${bundle_args[@]}" --file="$f" || {
+      warn "$name had failures — continuing"
+      failed_profiles+=("$name")
+    }
   fi
 done
 
@@ -164,9 +180,11 @@ if [ "$upgrade" = yes ] && [ "$mode" = install ]; then
   casks="$(brew outdated --cask --quiet | wc -l | tr -d ' ')"
   [ "$casks" -gt 0 ] && warn "$casks casks are outdated — upgrade them with: brew upgrade --cask"
 
-  # The greeting caches this count. Drop it so the next terminal shows what we
-  # just did rather than the number from before the upgrade.
-  rm -f "${XDG_STATE_HOME:-$HOME/.local/state}/davconf/cache-brew-outdated"
+fi
+
+if [ ${#failed_profiles[@]} -gt 0 ]; then
+  warn "Finished with failures in: ${failed_profiles[*]}"
+  exit 1
 fi
 
 info "Done."
