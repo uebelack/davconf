@@ -81,9 +81,6 @@ esac
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
-# pipx
-export PATH="$PATH:$HOME/.local/bin"
-
 # ----------------------------------------------------------- machine-local
 # API keys and per-machine overrides. Not in git. See zshrc.local.example.
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"

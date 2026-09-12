@@ -40,6 +40,7 @@ link_config() {
 }
 
 info "Linking shell configuration"
+link_config "$DAVCONF_DIR/zsh/zprofile" "$HOME/.zprofile"
 link_config "$DAVCONF_DIR/zsh/zshrc" "$HOME/.zshrc"
 mkdir -p "$HOME/.zfunctions"
 

@@ -1,0 +1,32 @@
+# ~/.zprofile — managed by davconf (github.com/uebelack/davconf)
+#
+# Login shells only, and read before ~/.zshrc. What belongs here is the $PATH
+# a *non-interactive* login shell also needs — anything a script or a GUI-
+# launched process should see. Interactive-only setup (aliases, prompt,
+# completions) belongs in zsh/zshrc instead.
+
+# Homebrew. macOS does not put /opt/homebrew/bin on the default $PATH, and
+# ~/.zshrc has not run yet at this point, so brew and everything it installed —
+# pyenv below included — are invisible without this.
+for prefix in /opt/homebrew /usr/local; do
+  [ -x "$prefix/bin/brew" ] && eval "$("$prefix/bin/brew" shellenv)" && break
+done
+
+# pyenv. The shims have to be on $PATH from a login file, not just ~/.zshrc, or
+# `python` resolves to the system one in every non-interactive shell — which is
+# exactly what oh-my-zsh's pyenv plugin warns about on a machine missing this
+# file. PYENV_ROOT is where the installed versions live and is ~/.pyenv whether
+# pyenv itself came from Homebrew or from its own installer.
+export PYENV_ROOT="$HOME/.pyenv"
+[ -d "$PYENV_ROOT/bin" ] && export PATH="$PYENV_ROOT/bin:$PATH"
+command -v pyenv >/dev/null && eval "$(pyenv init --path)"
+
+# pipx installs its tools' launchers here. Lives in this file rather than in
+# ~/.zshrc so a script calling a pipx-installed tool finds it too.
+export PATH="$PATH:$HOME/.local/bin"
+
+# JetBrains Toolbox CLI launchers (idea, webstorm, …). Absent on machines
+# without Toolbox, hence the guard.
+toolbox_scripts="$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
+[ -d "$toolbox_scripts" ] && export PATH="$PATH:$toolbox_scripts"
+unset toolbox_scripts

@@ -78,7 +78,7 @@ brew trust --tap arthur-ficial/tap
 | `update.sh` | Pulls this repo, then runs every module below, in order    |
 | `brew/`     | Homebrew itself, plus per-machine package profiles         |
 | `jenv/`     | Registers every installed JDK with jenv                    |
-| `zsh/`      | oh-my-zsh, spaceship prompt, plugins, shared `.zshrc`     |
+| `zsh/`      | oh-my-zsh, spaceship prompt, plugins, `.zshrc` + `.zprofile` |
 | `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      |
 | `mac/`      | macOS system defaults — the settings a fresh Mac gets wrong |
 
@@ -176,8 +176,19 @@ disappears on the next upgrade, which would leave jenv pointing at nothing.
 - [spaceship-prompt](https://github.com/spaceship-prompt/spaceship-prompt) theme
 - [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) and
   [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
-- a symlink `~/.zshrc` -> `zsh/zshrc` (any existing file is backed up first)
+- symlinks `~/.zshrc` -> `zsh/zshrc` and `~/.zprofile` -> `zsh/zprofile` (any
+  existing file is backed up first)
 - `zsh/autoupdate.zsh`, the daily background refresh described above
+
+`zshrc` and `zprofile` split by *which shells read them*, not by topic. zsh
+reads `~/.zprofile` for every login shell, interactive or not, and `~/.zshrc`
+only for interactive ones — so a `$PATH` a script or a GUI-launched process
+also needs goes in `zprofile`, and aliases, the prompt and completions go in
+`zshrc`. pyenv is the reason the split matters: with its shims set up only in
+`zshrc`, `python` silently falls back to the system one everywhere else, and
+oh-my-zsh's pyenv plugin greets every new terminal with "Found pyenv, but it is
+badly configured". `zprofile` also loads `brew shellenv`, since macOS leaves
+`/opt/homebrew/bin` off the default `$PATH` and `zshrc` has not run yet.
 
 ### ghostty
 
@@ -274,6 +285,7 @@ The shell config is split three ways by how shareable each part is:
 
 | File                    | Contents                            | In git? |
 | ----------------------- | ----------------------------------- | ------- |
+| `zsh/zprofile`          | Login-shell `$PATH` — same everywhere | yes     |
 | `zsh/zshrc`             | Shared setup — same on every machine | yes     |
 | `zsh/zshrc.privat`      | Personal hosts and project shortcuts | yes     |
 | `~/.zshrc.local`        | API keys, per-machine overrides       | **no**  |
