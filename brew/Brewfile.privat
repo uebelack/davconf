@@ -13,8 +13,6 @@ brew "gh"          # GitHub CLI
 brew "docker"      # CLI only; the daemon comes from the docker-desktop cask
 brew "ffmpeg"
 brew "qrtool"
-brew "cdk"         # curses development kit (not the AWS one)
-cask "raycast"
 cask "tableplus"
 cask "cursor"
 cask "claude-code"
