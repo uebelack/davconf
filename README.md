@@ -129,6 +129,16 @@ named in a Brewfile and leave their dependencies behind, which is most of what
 `brew outdated` reports. Casks are left alone: upgrading them can need a
 password, and the daily update runs with no terminal to type one into.
 
+A first run on a fresh machine can ask for your password once: a few casks
+need root to install — `docker-desktop` symlinks `kubectl` into a directory
+that is not user-writable — and Homebrew escalates for that step. This is
+Homebrew's doing, not the scripts'.
+
+That step cannot work from the daily background run, which has no terminal to
+type a password into. It fails only that profile and the rest of the run
+continues, but such a cask stays uninstalled until `./update.sh` is run by hand
+once. Worth doing as the first thing on a new machine.
+
 The daily auto-update passes `--upgrade`, so the machine keeps itself current
 on its own. Set `DAVCONF_UPDATE_UPGRADE=0` in `~/.zshrc.local` to install
 missing packages but upgrade nothing.
