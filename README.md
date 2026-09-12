@@ -73,10 +73,10 @@ split into profiles so each machine installs only what it is actually for:
 
 | Profile   | Contents                                                   |
 | --------- | ---------------------------------------------------------- |
-| `common`  | Always applied: shell tools, terminals, editors            |
-| `dev`     | Toolchains: node, python, ruby, JVM, mobile                |
+| `common`  | Always applied: the bare terminal — neovim, lazygit, gnupg, Ghostty, the Nerd Font |
+| `dev`     | Toolchains: the version managers, Python, JVM              |
 | `cloud`   | AWS, Azure, gcloud, Terraform                              |
-| `privat`  | Personal only: local AI, ODBC, Spotify, WhatsApp           |
+| `privat`  | Everything else: GUI apps, general CLI tools, local AI, Spotify |
 
 **Which profiles a machine gets is machine-local and not committed.** It lives
 in `~/.config/davconf/profiles`, one name per line — so the same repo sets up a

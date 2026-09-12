@@ -5,6 +5,21 @@
 #   brew trust --tap arthur-ficial/tap
 tap "arthur-ficial/tap", "https://github.com/Arthur-Ficial/homebrew-tap", trusted: true
 
+brew "gh"          # GitHub CLI
+brew "docker"      # CLI only; the daemon comes from the docker-desktop cask
+brew "ffmpeg"
+brew "qrtool"
+brew "cdk"         # curses development kit (not the AWS one)
+cask "raycast"
+cask "tableplus"
+cask "cursor"
+cask "claude-code"
+cask "docker-desktop"
+
+# mobile — the Android SDK and fvm install outside Homebrew; zshrc puts
+# $ANDROID_SDK_ROOT/platform-tools and ~/fvm/default/bin on $PATH
+brew "swiftformat"
+
 # local AI
 brew "ollama", restart_service: :changed
 brew "openai-whisper"
@@ -15,3 +30,4 @@ brew "unixodbc"    # ODBC driver manager, for the SQL Server clients
 cask "spotify"
 cask "whatsapp"
 cask "caffeine"
+
