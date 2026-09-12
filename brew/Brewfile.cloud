@@ -1,7 +1,12 @@
 # Cloud provider CLIs and infrastructure tooling.
 
+# terraform was removed from homebrew-core when HashiCorp relicensed it to
+# BUSL, so it comes from HashiCorp's own tap. trusted: true is required —
+# Homebrew refuses to load formulae from an untrusted third-party tap.
+tap "hashicorp/tap", trusted: true
+
 brew "awscli"
 brew "azure-cli"
-brew "terraform"
+brew "hashicorp/tap/terraform"
 
 cask "gcloud-cli"
