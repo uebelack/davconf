@@ -87,6 +87,11 @@ export PATH="$PATH:$HOME/.local/bin"
 # API keys and per-machine overrides. Not in git. See zshrc.local.example.
 [[ -f "$HOME/.zshrc.local" ]] && source "$HOME/.zshrc.local"
 
+# ---------------------------------------------------------------- greeting
+# Sourced before the auto-update so the panel reports the state as it was on
+# arrival, and the "updating…" notice lands underneath it.
+[[ -f "$davconf_dir/greeting.zsh" ]] && source "$davconf_dir/greeting.zsh"
+
 # ------------------------------------------------------------- auto-update
 # Refreshes this machine once a day, in the background. Sourced after
 # zshrc.local so its DAVCONF_* knobs are already set. See that file to turn

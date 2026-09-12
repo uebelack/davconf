@@ -103,6 +103,40 @@ before trusting it.
 - a symlink `~/.zshrc` -> `zsh/zshrc` (any existing file is backed up first)
 - `zsh/autoupdate.zsh`, the daily background refresh described above
 
+## Terminal greeting
+
+Every new terminal opens with a Synthwave '85 sun and a panel of vitals:
+weather, uptime, free disk, battery, outdated Homebrew packages, and how long
+ago this machine last updated itself.
+
+```
+      ▄▄▄▄▀▀▀▀▀▀▀▀▀▀▄▄▄▄        DAVCONF · SYNTHWAVE '85
+   ▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄     ──────────────────────────────
+ ▄▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▄   WEATHER  Basel  ☀️ +21°C ↓8km/h
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀  UPTIME   3h 54m
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀  DISK     1.3Ti free
+ ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀   POWER    100%
+   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀     BREW     3 outdated
+          ▄▄▄▄▄▄▄▄▄▄            UPDATE   18m ago
+╲   ╲   ╲  ╲ ╲│╱ ╱  ╱   ╱   ╱
+──────────────┼──────────────   Hack the planet.
+```
+
+Startup stays fast (~20ms): weather and the Homebrew check are read from cache
+files and refreshed in a detached background job, so nothing networked ever
+runs while you wait for a prompt. A value that has never been fetched shows
+`…` rather than a guess. Tune it in `~/.zshrc.local`:
+
+```sh
+DAVCONF_GREETING=0                 # no greeting
+DAVCONF_GREETING_ART=0             # vitals only, skip the sun
+DAVCONF_WEATHER_LOCATION=Zurich    # default Basel
+```
+
+The sun is generated, not hand-typed — colours come from the same palette as
+`config.ghostty`. Edit `zsh/greeting-art.py` and run it to reshape or recolour
+it, then paste the output into the `art=( … )` array in `zsh/greeting.zsh`.
+
 ## Configuration tiers
 
 The shell config is split three ways by how shareable each part is:

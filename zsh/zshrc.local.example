@@ -22,3 +22,10 @@ export LANGSMITH_PROJECT="test"
 # DAVCONF_AUTO_UPDATE=0                  # switch it off
 # DAVCONF_UPDATE_INTERVAL=86400          # seconds between runs
 # DAVCONF_UPDATE_PROFILES="dev privat"   # brew profiles to include
+
+# --- terminal greeting -------------------------------------------------------
+# Synthwave sun + weather + machine vitals on every new terminal.
+
+# DAVCONF_GREETING=0                 # no greeting
+# DAVCONF_GREETING_ART=0             # vitals only, skip the sun
+# DAVCONF_WEATHER_LOCATION=Zurich    # default Basel
