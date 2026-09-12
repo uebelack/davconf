@@ -1,0 +1,7 @@
+# ALIASES
+
+alias schizo='ssh david@192.168.0.210'
+alias rasenmaeher='ssh david@192.168.0.220'
+
+alias snailmail="cd $HOME/projects/snailmail"
+alias davconf="cd $HOME/.davconf"

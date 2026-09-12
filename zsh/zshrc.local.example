@@ -1,0 +1,16 @@
+# ~/.zshrc.local — machine-local secrets and overrides. NEVER commit this file.
+#
+# Copy to ~/.zshrc.local and fill in real values:
+#   cp zsh/zshrc.local.example ~/.zshrc.local && chmod 600 ~/.zshrc.local
+
+# source "$HOME/.davconf/zsh/.zshrc.privat"
+
+export OPENAI_API_KEY=
+export ANTHROPIC_API_KEY=
+export GOOGLE_API_KEY=
+export TAVILY_API_KEY=
+
+export LANGSMITH_TRACING=true
+export LANGSMITH_ENDPOINT=https://eu.api.smith.langchain.com
+export LANGSMITH_API_KEY=
+export LANGSMITH_PROJECT="test"

@@ -1,0 +1,9 @@
+# Personal machines only — not for work machines.
+#   brew bundle --file=brew/Brewfile.personal
+
+brew "ollama", restart_service: :changed
+brew "openai-whisper"
+
+cask "spotify"
+cask "whatsapp"
+cask "caffeine"
