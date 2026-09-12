@@ -78,8 +78,27 @@ else
   fi
 fi
 
+# --- modules -----------------------------------------------------------------
+# Every module runs, even when an earlier one failed. A third-party brew tap
+# breaking upstream is not a reason for this machine's shell, terminal, browser
+# and macOS settings to stop being updated — the same reasoning the git pull
+# above already uses. Failures are collected, named at the end, and still make
+# the whole run exit non-zero, so nothing is quietly swallowed.
+failed=" "
+run_module() {
+  local name="$1"
+  shift
+  # The `if` is what suspends `set -e` for the call: without it the first
+  # failing module would still take the whole script down.
+  if "$DAVCONF_DIR/$name/update.sh" ${@+"$@"}; then
+    return 0
+  fi
+  warn "$name/update.sh failed — continuing with the rest."
+  failed="$failed$name "
+}
+
 # Installs Homebrew first if this machine does not have it yet.
-"$DAVCONF_DIR/brew/update.sh" ${args+"${args[@]}"}
+run_module brew ${args+"${args[@]}"}
 
 # brew/update.sh runs in its own process, so a Homebrew it just installed is
 # not on our $PATH. Load it here too, or zsh/update.sh would not find brew.
@@ -91,20 +110,25 @@ fi
 
 # Straight after brew: a JDK a Brewfile just installed is registered with jenv
 # in the same run, rather than sitting on disk unusable until noticed.
-"$DAVCONF_DIR/jenv/update.sh"
+run_module jenv
 
-"$DAVCONF_DIR/zsh/update.sh"
+run_module zsh
 
 # Terminal configuration. Just a symlink, so it is cheap and cannot fail in a
 # way that matters — but it goes after zsh, since the two are read together the
 # next time a terminal opens.
-"$DAVCONF_DIR/ghostty/update.sh"
+run_module ghostty
 
 # The browser, next to the terminal it shares a palette with. Builds the theme
 # and reports it; loading it is a one-off manual step Chrome allows no way
 # around, and the module goes quiet once a machine opts out or has it applied.
-"$DAVCONF_DIR/chrome/update.sh"
+run_module chrome
 
 # macOS system defaults. No-op on anything else, and a no-op here too unless a
 # setting has actually drifted — it restarts only the apps whose settings changed.
-"$DAVCONF_DIR/mac/update.sh"
+run_module mac
+
+if [ "$failed" != " " ]; then
+  warn "Finished with failures in:$failed"
+  exit 1
+fi

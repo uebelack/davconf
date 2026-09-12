@@ -107,6 +107,29 @@ set_default com.apple.dock autohide -bool true \
 set_default com.apple.dock tilesize -int 35 \
   "icon size"
 
+# --- Appearance -------------------------------------------------------------
+
+info "Appearance"
+
+# The window buttons are drawn by the window server from a private asset set,
+# so Graphite is the only supported way to change them — and it makes all three
+# grey rather than any colour of your choosing. Anything else means injecting
+# code into every app, which needs SIP off.
+#
+# Both keys, or the controls and the buttons end up disagreeing:
+# AppleAquaColorVariant is the old control variant (1 blue, 6 graphite) and
+# AppleAccentColor the modern accent (-1 graphite, 0 red … 6 pink; the key
+# being absent means multicolour).
+#
+# Apps read these at launch and otherwise wait for the notification System
+# Settings posts, which `defaults write` does not — so already-running apps
+# keep their old buttons until they are restarted or you log out and back in.
+set_default NSGlobalDomain AppleAquaColorVariant -int 6 \
+  "graphite window buttons"
+
+set_default NSGlobalDomain AppleAccentColor -int -1 \
+  "graphite accent colour"
+
 # --- per-folder view settings (opt-in) --------------------------------------
 
 if [ "$reset_views" = yes ]; then

@@ -1,12 +1,20 @@
 # Cloud provider CLIs and infrastructure tooling.
 
-# terraform was removed from homebrew-core when HashiCorp relicensed it to
-# BUSL, so it comes from HashiCorp's own tap. trusted: true is required —
-# Homebrew refuses to load formulae from an untrusted third-party tap.
-tap "hashicorp/tap", trusted: true
-
 brew "awscli"
 brew "azure-cli"
-brew "hashicorp/tap/terraform"
+
+# terraform comes from neither homebrew-core nor HashiCorp's tap any more.
+# Core's formula was disabled on 2025-04-04 over the BUSL relicensing, and
+# hashicorp/tap cannot be tapped at all: Homebrew validates every cask in a tap,
+# and their vagrant and boundary-desktop casks fail its Linux checks, so the
+# whole tap is rejected — `brew "hashicorp/tap/terraform"` failed every run.
+#
+# tenv is in core, downloads the official HashiCorp builds straight from their
+# releases, and lets a project pin its own version through .terraform-version.
+# It installs the `terraform` binary itself, so it conflicts with the old core
+# formula — that one has to be uninstalled first.
+#
+#   tenv tf install latest && tenv tf use latest
+brew "tenv"
 
 cask "gcloud-cli"

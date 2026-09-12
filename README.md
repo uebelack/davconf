@@ -83,6 +83,11 @@ brew trust --tap arthur-ficial/tap
 | `chrome/`   | The Synthwave '85 Chrome theme, and how to load it          |
 | `mac/`      | macOS system defaults — the settings a fresh Mac gets wrong |
 
+Every module runs even when an earlier one fails: a third-party tap breaking
+upstream should not stop the shell, terminal, browser and macOS settings from
+being updated. The failures are named at the end and the run still exits
+non-zero, so nothing is swallowed.
+
 ### brew
 
 `brew/update.sh` installs Homebrew first if the machine does not have it.
@@ -278,6 +283,17 @@ for a no-op.
 | File extensions             | always shown (`AppleShowAllExtensions`)      |
 | Dock                        | hides automatically (`autohide`)             |
 | Dock icon size              | 35pt (`tilesize`, slider spans 16–128)       |
+| Window buttons + accent     | graphite (`AppleAquaColorVariant`, `AppleAccentColor`) |
+
+The window buttons are the one row worth explaining. They are drawn by the
+window server from a private asset set, so Graphite — all three grey — is the
+only supported way to change them; actual custom colours would mean injecting
+code into every app with SIP off. Apps read the two keys at launch and
+otherwise wait for the notification System Settings posts, which `defaults
+write` does not, so running apps keep their old buttons until they restart or
+you log out. To go back to the standard blue: `defaults delete -g
+AppleAquaColorVariant; defaults delete -g AppleAccentColor` — and drop the two
+`set_default` lines, or the next run puts them straight back.
 
 ```sh
 ./mac/update.sh                      # apply every tweak
