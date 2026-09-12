@@ -2,8 +2,9 @@
 #
 # Bring this machine up to date with the config in this repo.
 #
-#   ./update.sh                 # Homebrew + core packages + zsh
-#   ./update.sh dev privat      # …plus the named brew profiles
+#   ./update.sh                 # Homebrew + this machine's packages + zsh
+#   ./update.sh java ruby       # …with the named brew profiles instead of
+#                               #   the ones in ~/.config/davconf/profiles
 #   ./update.sh --no-pull       # skip the git pull
 #
 # Safe to run any time: every step is idempotent, so the first run on a new

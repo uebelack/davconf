@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 #
 # Install or update the davconf zsh environment: oh-my-zsh, the spaceship
-# theme, the custom plugins and the shared .zshrc. Safe to run any time —
+# theme, the custom plugins and the shared .zshrc. The tools the .zshrc hooks
+# into (neovim, direnv, the version managers) come from brew/Brewfile.common
+# and the language profiles; the .zshrc guards each one, so a machine missing
+# any of them still gets a working shell. Safe to run any time —
 # every step is idempotent, oh-my-zsh and the plugins are pulled to their
 # latest version, and existing files are backed up rather than clobbered.
 
@@ -19,15 +22,6 @@ warn() { printf '\033[1;33m==>\033[0m %s\n' "$1"; }
 
 command -v zsh >/dev/null || { echo "zsh is not installed" >&2; exit 1; }
 command -v git >/dev/null || { echo "git is not installed" >&2; exit 1; }
-
-# Tools the shared .zshrc hooks into. The .zshrc guards each one, so a missing
-# tool degrades gracefully — but the shell is only complete with them present.
-if ! command -v brew >/dev/null; then
-  warn "Homebrew not found — run ./brew/update.sh first. Skipping packages."
-else
-  info "Installing Homebrew packages"
-  brew bundle install --no-upgrade --file="$DAVCONF_DIR/brew/Brewfile.zsh"
-fi
 
 # --- .zshrc -----------------------------------------------------------------
 

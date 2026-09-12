@@ -9,7 +9,7 @@ and again whenever you want it back in sync with this repo.
 git clone git@github.com:uebelack/davconf.git ~/.davconf
 cd ~/.davconf
 ./update.sh              # core setup
-./update.sh dev privat   # …or with extra package profiles
+./brew/update.sh --list  # then pick this machine's package profiles
 ```
 
 Then fill in `~/.zshrc.local` and open a new shell.
@@ -32,7 +32,7 @@ one takes an atomic lock. Tune it in `~/.zshrc.local`:
 ```sh
 DAVCONF_AUTO_UPDATE=0                  # switch it off
 DAVCONF_UPDATE_INTERVAL=86400          # seconds between runs
-DAVCONF_UPDATE_PROFILES="dev privat"   # brew profiles to include
+DAVCONF_UPDATE_PROFILES="java nag"     # override ~/.config/davconf/profiles
 DAVCONF_UPDATE_UPGRADE=0               # install missing, but upgrade nothing
 ```
 
@@ -51,7 +51,7 @@ The pull is skipped when the working tree is dirty or history has diverged; it
 is `--ff-only`, so it never touches local work. `./update.sh --no-pull` skips it.
 
 One manual step on a brand-new machine: Homebrew keeps third-party tap trust in
-`~/.homebrew/trust.json`, which no Brewfile can set, so `Brewfile.dev` needs
+`~/.homebrew/trust.json`, which no Brewfile can set, so `Brewfile.privat` needs
 
 ```sh
 brew trust --tap arthur-ficial/tap
@@ -62,27 +62,47 @@ brew trust --tap arthur-ficial/tap
 | Module      | What it does                                             |
 | ----------- | -------------------------------------------------------- |
 | `update.sh` | Pulls this repo, then runs every module below, in order    |
-| `brew/`     | Homebrew itself, plus package lists split into profiles   |
+| `brew/`     | Homebrew itself, plus per-machine package profiles         |
 | `zsh/`      | oh-my-zsh, spaceship prompt, plugins, shared `.zshrc`     |
 
 ### brew
 
 `brew/update.sh` installs Homebrew first if the machine does not have it.
 Packages live in [Brewfiles](https://docs.brew.sh/Brew-Bundle-and-Brewfile),
-split so a work machine need not install personal apps:
+split into profiles so each machine installs only what it is actually for:
 
-| File                | Contents                                             |
-| ------------------- | ---------------------------------------------------- |
-| `Brewfile`          | Core — always installed                               |
-| `Brewfile.zsh`      | Shell dependencies (`zsh/update.sh` installs these)   |
-| `Brewfile.dev`      | Toolchains, cloud CLIs, GUI dev tools                 |
-| `Brewfile.privat`   | Personal machines only                                |
+| Profile      | Contents                                              |
+| ------------ | ----------------------------------------------------- |
+| `common`     | Always applied: shell tools, terminals, editors, Python, cloud CLIs |
+| `javascript` | nvm, serve, vite-plus                                  |
+| `ruby`       | rbenv                                                  |
+| `java`       | jenv, openjdk, maven, Temurin                          |
+| `mobile`     | iOS / Android / Flutter tooling                        |
+| `nag`        | Azure, Terraform, ODBC — NAG work machines             |
+| `pf`         | PF machines                                            |
+| `privat`     | Personal only: local AI, Spotify, WhatsApp             |
+
+**Which profiles a machine gets is machine-local and not committed.** It lives
+in `~/.config/davconf/profiles`, one name per line — so the same repo sets up a
+work laptop and a personal one differently:
 
 ```sh
-./brew/update.sh                 # core only
-./brew/update.sh dev privat      # core + the named profiles
-./brew/update.sh --all           # everything
-./brew/update.sh --check --all   # what is missing? install nothing
+# ~/.config/davconf/profiles
+java
+nag
+javascript
+```
+
+`brew/update.sh` writes that file the first time it runs, with every profile
+commented out, so there is something to edit rather than a blank page.
+`common` is always applied and does not belong in it.
+
+```sh
+./brew/update.sh                 # common + this machine's profiles
+./brew/update.sh java ruby       # common + the named profiles (ignores the file)
+./brew/update.sh --all           # common + every profile
+./brew/update.sh --list          # which profiles exist, which are selected
+./brew/update.sh --check         # what is missing? install nothing
 ```
 
 Missing packages get installed; existing ones stay at their current version
@@ -96,17 +116,14 @@ The daily auto-update passes `--upgrade`, so the machine keeps itself current
 on its own. Set `DAVCONF_UPDATE_UPGRADE=0` in `~/.zshrc.local` to install
 missing packages but upgrade nothing.
 
-To add a package, edit the Brewfile — or dump the
-current machine's state with `brew bundle dump --file=- ` and cherry-pick.
-Note that `dump` omits formulae installed from custom taps, so check its output
-before trusting it.
+To add a package, edit the right Brewfile — or dump the current machine's state
+with `brew bundle dump --file=-` and cherry-pick. Note that `dump` omits
+formulae installed from custom taps, so check its output before trusting it.
 
 ### zsh
 
 `zsh/update.sh` installs, and on later runs updates:
 
-- Homebrew packages the shell hooks into: `nvm`, `rbenv`, `pyenv-virtualenv`,
-  `jenv`, `direnv`, `lazygit`, `gnupg`, `neovim`
 - [oh-my-zsh](https://github.com/ohmyzsh/ohmyzsh)
 - [spaceship-prompt](https://github.com/spaceship-prompt/spaceship-prompt) theme
 - [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) and

@@ -1,0 +1,6 @@
+# Mobile development: iOS, Android, Flutter.
+#
+# The Android SDK and fvm are installed outside Homebrew; zshrc puts
+# $ANDROID_SDK_ROOT/platform-tools and ~/fvm/default/bin on $PATH.
+
+brew "swiftformat"

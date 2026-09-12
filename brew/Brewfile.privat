@@ -1,8 +1,14 @@
 # Personal machines only — not for work machines.
-#   brew bundle --file=brew/Brewfile.privat
 
+# Third-party tap. Homebrew keeps trust in a machine-local ~/.homebrew/trust.json,
+# which a Brewfile cannot set, so on a brand-new machine run once:
+#   brew trust --tap arthur-ficial/tap
+tap "arthur-ficial/tap", "https://github.com/Arthur-Ficial/homebrew-tap", trusted: true
+
+# local AI
 brew "ollama", restart_service: :changed
 brew "openai-whisper"
+brew "arthur-ficial/tap/apfel"   # on-device Apple FoundationModels CLI
 
 cask "spotify"
 cask "whatsapp"
