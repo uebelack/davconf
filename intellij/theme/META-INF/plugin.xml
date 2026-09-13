@@ -1,0 +1,32 @@
+<!--
+  JetBrains IDEs will not load a colour scheme on its own the way VS Code does
+  — a UI theme has to be a plugin. This is the smallest one that can exist: no
+  code, two resources, and a themeProvider pointing at them. intellij/update.sh
+  zips this directory into a jar and drops it in each IDE's plugins directory.
+
+  The <id> must stay stable and unique; changing it makes every IDE treat the
+  result as a different plugin. No <idea-version> upper bound on purpose, so an
+  IDE upgrade does not silently disable the theme — a resource-only plugin has
+  no API surface to break against.
+-->
+<idea-plugin>
+  <id>dev.uebelacker.davconf.synthwave85</id>
+  <name>Synthwave '85</name>
+  <version>1.0.0</version>
+  <vendor url="https://github.com/uebelack/davconf">davconf</vendor>
+
+  <description><![CDATA[
+    Outrun / miami-nights theme in the davconf palette — the same hexes as the
+    Ghostty terminal config, the zsh prompt, the Chrome theme and the VS Code
+    theme. Includes an editor colour scheme and the Ghostty ANSI palette for
+    the built-in terminal and run console.
+  ]]></description>
+
+  <depends>com.intellij.modules.platform</depends>
+  <idea-version since-build="223" />
+
+  <extensions defaultExtensionNs="com.intellij">
+    <themeProvider id="f6c1653d-bea4-475c-9ccb-0433bee865d5"
+                   path="/themes/synthwave-85.theme.json" />
+  </extensions>
+</idea-plugin>

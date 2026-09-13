@@ -129,6 +129,10 @@ run_module chrome
 # not own.
 run_module vscode
 
+# The JetBrains IDEs, same palette again. Builds the theme plugin — no Gradle,
+# no JDK, it is three files in a jar — and installs it into every IDE found.
+run_module intellij
+
 # macOS system defaults. No-op on anything else, and a no-op here too unless a
 # setting has actually drifted — it restarts only the apps whose settings changed.
 run_module mac

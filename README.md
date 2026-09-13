@@ -82,6 +82,7 @@ brew trust --tap arthur-ficial/tap
 | `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      |
 | `chrome/`   | The Synthwave '85 Chrome theme, and how to load it          |
 | `vscode/`   | The Synthwave '85 theme for VS Code and Cursor              |
+| `intellij/` | The Synthwave '85 theme for the JetBrains IDEs              |
 | `mac/`      | macOS system defaults — the settings a fresh Mac gets wrong |
 
 Every module runs even when an earlier one fails: a third-party tap breaking
@@ -304,6 +305,40 @@ not own and will not rewrite — so the module reports which editors have it
 selected and prints the one manual step for the rest: `cmd+shift+p` →
 "Preferences: Color Theme" → Synthwave '85. `touch
 ~/.config/davconf/no-vscode-theme` on a machine that does not want it.
+
+### intellij
+
+`intellij/theme` is the same Synthwave '85 palette for the JetBrains IDEs — a UI
+theme plus an editor colour scheme, and the Ghostty ANSI palette for the
+built-in terminal and run console.
+
+```sh
+./intellij/update.sh          # build and install where out of date
+./intellij/update.sh --check  # report what would change, change nothing
+```
+
+JetBrains IDEs will not read a loose theme file the way VS Code does: a UI theme
+has to be a plugin. This is the smallest one that can exist — `plugin.xml`, the
+theme JSON and the colour scheme XML, no code at all — so building it is zipping
+three files into a jar. No Gradle, no JDK, nothing to install first.
+
+The jar is a build artifact and is not committed. It is rebuilt whenever a
+source file is newer than the installed copy, so a `git pull` that touches the
+theme reinstalls it on the next run. IDEs are found by looking for an
+`options/` directory under `~/Library/Application Support/JetBrains` and
+`~/Library/Application Support/Google` — which is what separates a real IDE
+config directory from Toolbox's own.
+
+The editor colour scheme inherits from Darcula (`parent_scheme`), so a language
+the scheme never heard of still looks right rather than falling back to the
+light defaults.
+
+Selecting it is one step per IDE, after a restart: Settings → Appearance &
+Behavior → Appearance → Theme → Synthwave '85. The editor colours come with it.
+The module reports which IDEs have it selected and will not write the setting
+itself — the IDE rewrites `options/*.xml` when it exits and would drop anything
+put there while it was running. `touch ~/.config/davconf/no-intellij-theme` on a
+machine that does not want it.
 
 ### mac
 
