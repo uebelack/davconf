@@ -81,6 +81,7 @@ brew trust --tap arthur-ficial/tap
 | `zsh/`      | oh-my-zsh, spaceship prompt, plugins, `.zshrc` + `.zprofile` |
 | `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      |
 | `chrome/`   | The Synthwave '85 Chrome theme, and how to load it          |
+| `vscode/`   | The Synthwave '85 theme for VS Code and Cursor              |
 | `mac/`      | macOS system defaults — the settings a fresh Mac gets wrong |
 
 Every module runs even when an earlier one fails: a third-party tap breaking
@@ -276,6 +277,33 @@ Ghostty with `cmd+shift+r` and the change applies without another run.
 both, so leave that one absent — settings split across the two are the kind of
 thing that takes an afternoon to debug. Check what Ghostty actually ended up
 with using `ghostty +show-config`.
+
+### vscode
+
+`vscode/theme` is a colour theme extension in the same Synthwave '85 palette as
+`ghostty/config`, the prompt and the Chrome theme — indigo editor, magenta
+structure, cyan for what you call, gold for text you wrote, coral for control
+flow and anything wrong. The integrated terminal gets the Ghostty palette
+verbatim, all sixteen ANSI colours, so the terminal inside the editor and the
+terminal beside it are the same terminal.
+
+```sh
+./vscode/update.sh          # link it into every editor found
+./vscode/update.sh --check  # report what would change, change nothing
+```
+
+Both editors scan their extensions directory at startup and follow symlinks, so
+a link into `~/.vscode/extensions` and `~/.cursor/extensions` is the whole
+install — no packaging, no marketplace. Cursor is a VS Code fork and reads the
+same extension format, which is why one directory serves both. Editing
+`vscode/theme/themes/synthwave-85-color-theme.json` reaches the editor on its
+next restart.
+
+Selecting it is a line in each editor's `settings.json`, a file this repo does
+not own and will not rewrite — so the module reports which editors have it
+selected and prints the one manual step for the rest: `cmd+shift+p` →
+"Preferences: Color Theme" → Synthwave '85. `touch
+~/.config/davconf/no-vscode-theme` on a machine that does not want it.
 
 ### mac
 

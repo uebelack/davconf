@@ -1,0 +1,24 @@
+{
+  "name": "synthwave-85",
+  "displayName": "Synthwave '85",
+  "description": "Outrun / miami-nights theme in the davconf palette — the same hexes as the Ghostty config, the zsh prompt and the Chrome theme.",
+  "version": "1.0.0",
+  "publisher": "davconf",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "contributes": {
+    "themes": [
+      {
+        "label": "Synthwave '85",
+        "uiTheme": "vs-dark",
+        "path": "./themes/synthwave-85-color-theme.json"
+      }
+    ]
+  }
+}

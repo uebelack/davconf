@@ -124,6 +124,11 @@ run_module ghostty
 # around, and the module goes quiet once a machine opts out or has it applied.
 run_module chrome
 
+# The editor, same palette again. Links the theme extension into VS Code and
+# Cursor; picking it is a one-off per editor, in a settings.json this repo does
+# not own.
+run_module vscode
+
 # macOS system defaults. No-op on anything else, and a no-op here too unless a
 # setting has actually drifted — it restarts only the apps whose settings changed.
 run_module mac
