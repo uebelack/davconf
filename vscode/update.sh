@@ -40,10 +40,18 @@ done
 
 [ -e "$OPT_OUT" ] && exit 0
 
-# <label>|<extensions dir>|<settings.json>
+# <label>|<extensions dir>|<settings.json>|<app bundle>|<cli>
+#
+# The extensions directory is not proof of anything on its own: an editor that
+# has never installed an extension does not have one yet, and skipping on that
+# basis silently ignores a perfectly real editor. So an editor counts as present
+# if any of its four traces exist, and the directory is created when it is the
+# missing one. ~/Applications is checked as well as /Applications, since that is
+# where casks land on a machine that does not own the latter.
 editors=(
-  "VS Code|$HOME/.vscode/extensions|$HOME/Library/Application Support/Code/User/settings.json"
-  "Cursor|$HOME/.cursor/extensions|$HOME/Library/Application Support/Cursor/User/settings.json"
+  "VS Code|$HOME/.vscode/extensions|$HOME/Library/Application Support/Code/User/settings.json|Visual Studio Code.app|code"
+  "VS Code Insiders|$HOME/.vscode-insiders/extensions|$HOME/Library/Application Support/Code - Insiders/User/settings.json|Visual Studio Code - Insiders.app|code-insiders"
+  "Cursor|$HOME/.cursor/extensions|$HOME/Library/Application Support/Cursor/User/settings.json|Cursor.app|cursor"
 )
 
 info "Editor theme"
@@ -52,9 +60,25 @@ found=0
 unselected=()
 
 for entry in "${editors[@]}"; do
-  IFS='|' read -r label ext_dir settings <<<"$entry"
-  [ -d "$ext_dir" ] || continue
+  IFS='|' read -r label ext_dir settings app cli <<<"$entry"
+
+  present=no
+  [ -d "$ext_dir" ] && present=yes
+  [ -f "$settings" ] && present=yes
+  [ -d "/Applications/$app" ] && present=yes
+  [ -d "$HOME/Applications/$app" ] && present=yes
+  command -v "$cli" >/dev/null 2>&1 && present=yes
+  [ "$present" = yes ] || continue
+
   found=1
+
+  if [ ! -d "$ext_dir" ]; then
+    if [ "$mode" = check ]; then
+      warn "$label: $ext_dir would be created"
+    else
+      mkdir -p "$ext_dir"
+    fi
+  fi
 
   dest="$ext_dir/$LINK_NAME"
 

@@ -54,7 +54,30 @@ _davconf_greet() {
   # --- vitals --------------------------------------------------------------
   local loc=${DAVCONF_WEATHER_LOCATION:-Basel}
   local weather brewout brewknown=0
-  _cache weather 1800 curl -fsS --max-time 8 "wttr.in/${loc}?format=%c%t+%w&m"
+
+  # The weather is the only thing in this greeting that leaves the machine, so
+  # it is the only thing a corporate proxy breaks. curl does read the
+  # environment itself, but not every spelling of it: https_proxy, HTTPS_PROXY
+  # and lowercase http_proxy are honoured, while an uppercase HTTP_PROXY is
+  # deliberately ignored — a CGI script would otherwise inherit one straight
+  # from a request header. A machine that exports only the uppercase pair
+  # therefore fetches direct, and on a network that requires the proxy that is
+  # eight seconds of nothing, every terminal, until the timeout gives up.
+  #
+  # So: resolve it here, accept every spelling, and ask over https — which also
+  # means HTTPS_PROXY is the variable that applies. no_proxy is passed along as
+  # --noproxy so an exclusion list still excludes.
+  local -a curl_opts=(-fsS --max-time 8)
+  # In order of how specific the variable is to this request. The http_* pair
+  # comes last and is strictly a fallback: it names a proxy for http, not for
+  # the https we are asking over — but a machine that sets only that pair means
+  # the same host, and going direct there means going nowhere.
+  local proxy=${https_proxy:-${HTTPS_PROXY:-${all_proxy:-${ALL_PROXY:-${http_proxy:-${HTTP_PROXY:-}}}}}}
+  local noproxy=${no_proxy:-${NO_PROXY:-}}
+  [[ -n $proxy   ]] && curl_opts+=(--proxy $proxy)
+  [[ -n $noproxy ]] && curl_opts+=(--noproxy $noproxy)
+
+  _cache weather 1800 curl $curl_opts "https://wttr.in/${loc}?format=%c%t+%w&m"
   weather=$REPLY
   _cache brew-outdated 900 brew outdated --quiet && brewknown=1
   brewout=$REPLY

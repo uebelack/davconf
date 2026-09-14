@@ -282,6 +282,25 @@ line as you type it (a command turns cyan only once zsh can actually find it,
 so a typo stays coral), the autosuggestion, the completion menu and `ls`. It is
 sourced *after* oh-my-zsh, since the plugins it loads set those same variables.
 
+#### Weather behind a proxy
+
+The weather line is the only part of the greeting that leaves the machine, so
+it is the only part a corporate proxy breaks. It is fetched over https with the
+proxy taken from the environment — `https_proxy`, `HTTPS_PROXY`, `all_proxy`,
+`ALL_PROXY`, and the `http_proxy` pair as a last resort — and `no_proxy` passed
+through as `--noproxy`, so an exclusion list still excludes.
+
+Resolving it in the script rather than leaving it to curl is deliberate. curl
+honours `https_proxy`, `HTTPS_PROXY` and lowercase `http_proxy`, but
+deliberately ignores an uppercase `HTTP_PROXY`, since a CGI script would inherit
+one straight from a request header. A machine exporting only the uppercase pair
+would fetch direct — and on a network that requires the proxy, that is eight
+seconds of nothing in every new terminal until the timeout gives up.
+
+Nothing blocks on it either way: the greeting prints the cached value and
+refreshes in the background, so a failed fetch costs you a slightly stale line,
+not a slow prompt.
+
 #### Startup time
 
 Shells open in about 0.6s. They used to take 1.3s, and all of the difference
@@ -340,11 +359,23 @@ terminal beside it are the same terminal.
 ```
 
 Both editors scan their extensions directory at startup and follow symlinks, so
-a link into `~/.vscode/extensions` and `~/.cursor/extensions` is the whole
-install — no packaging, no marketplace. Cursor is a VS Code fork and reads the
-same extension format, which is why one directory serves both. Editing
+a link into `~/.vscode/extensions`, `~/.vscode-insiders/extensions` or
+`~/.cursor/extensions` is the whole install — no packaging, no marketplace.
+Cursor is a VS Code fork and reads the same extension format, which is why one
+directory serves all three. Editing
 `vscode/theme/themes/synthwave-85-color-theme.json` reaches the editor on its
 next restart.
+
+An editor counts as installed if *any* of its traces exist: the extensions
+directory, its `settings.json`, its app bundle in `/Applications` or
+`~/Applications`, or its CLI on `$PATH`. The extensions directory alone is not
+proof — an editor that has never installed an extension does not have one yet,
+and treating that as "not installed" silently skips a perfectly real editor.
+The directory is created when it is the piece that is missing.
+
+`package.json` asks for `engines.vscode: ^1.40.0` deliberately. A colour theme
+has no API surface to break against, and a higher floor only means an older
+editor — a work machine on a managed release, say — refuses to load it.
 
 Selecting it is a line in each editor's `settings.json`, a file this repo does
 not own and will not rewrite — so the module reports which editors have it
