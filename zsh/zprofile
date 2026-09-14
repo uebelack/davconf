@@ -12,6 +12,15 @@ for prefix in /opt/homebrew /usr/local; do
   [ -x "$prefix/bin/brew" ] && eval "$("$prefix/bin/brew" shellenv)" && break
 done
 
+# Casks, on a machine where /Applications is not yours to write to. Homebrew
+# appends HOMEBREW_CASK_OPTS to every cask command, so this covers
+# `brew install --cask` typed by hand; brew/update.sh repeats the same test for
+# the Brewfiles, since the daily background update never reads this file.
+# Nothing changes where /Applications is writable, and an existing value wins.
+if [ ! -w /Applications ] && [ -z "${HOMEBREW_CASK_OPTS:-}" ]; then
+  export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
+fi
+
 # pyenv. The shims have to be on $PATH from a login file, not just ~/.zshrc, or
 # `python` resolves to the system one in every non-interactive shell — which is
 # exactly what oh-my-zsh's pyenv plugin warns about on a machine missing this

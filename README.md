@@ -157,6 +157,28 @@ To add a package, edit the right Brewfile — or dump the current machine's stat
 with `brew bundle dump --file=-` and cherry-pick. Note that `dump` omits
 formulae installed from custom taps, so check its output before trusting it.
 
+#### Machines that do not own /Applications
+
+A managed Mac — a work machine under MDM — will not let you write to
+`/Applications`, and every cask install fails on the copy at the very end.
+Homebrew appends `HOMEBREW_CASK_OPTS` to every cask command, so pointing it at
+`~/Applications` is the whole fix: macOS treats that as a real application
+directory, Spotlight indexes it and Launchpad lists it.
+
+`brew/update.sh` and `zsh/zprofile` both set it when, and only when,
+`/Applications` is not writable — the test is the entire condition, so there is
+no per-machine flag to remember and nothing changes on a machine that does own
+`/Applications`. The two copies exist because the daily background update never
+reads a login shell, and a `brew install --cask` typed by hand never runs
+`brew/update.sh`. An existing `HOMEBREW_CASK_OPTS` is always left alone.
+
+Fonts need nothing: casks put them in `~/Library/Fonts` already.
+
+What this does *not* rescue is a cask that ships a `.pkg` installer rather than
+an app bundle — `temurin`, for one. Those run Apple's installer against `/` and
+ask for an admin password no matter where `--appdir` points, so on a locked-down
+machine they have to come from somewhere else.
+
 ### jenv
 
 Homebrew installs JDKs and tells jenv about none of them, in two different

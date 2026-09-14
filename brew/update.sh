@@ -107,6 +107,26 @@ if ! command -v brew >/dev/null; then
   command -v brew >/dev/null || { echo "Homebrew install failed" >&2; exit 1; }
 fi
 
+# --- where casks go ---------------------------------------------------------
+# A managed machine — a work Mac under MDM, typically — does not let you write
+# to /Applications, and every cask install fails on the copy at the very end.
+# Homebrew appends HOMEBREW_CASK_OPTS to every cask command, so pointing it at
+# ~/Applications is the whole fix: macOS treats that as a real application
+# directory, Spotlight indexes it and Launchpad lists it.
+#
+# The writability test is the entire condition, so there is no per-machine flag
+# to remember and nothing changes on a machine where /Applications is writable.
+# zsh/zprofile repeats it for `brew install --cask` typed by hand; this copy is
+# here because the daily background update never reads a login shell.
+#
+# An HOMEBREW_CASK_OPTS already in the environment is left alone — if you have
+# set one, it is more specific than this guess.
+if [ ! -w /Applications ] && [ -z "${HOMEBREW_CASK_OPTS:-}" ]; then
+  export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
+  mkdir -p "$HOME/Applications"
+  info "/Applications is not writable — installing casks into ~/Applications"
+fi
+
 # Explicit arguments win over the machine's file; --all wins over both.
 profiles=()
 if [ "$all" = yes ]; then
