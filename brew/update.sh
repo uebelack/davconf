@@ -120,11 +120,27 @@ fi
 # here because the daily background update never reads a login shell.
 #
 # An HOMEBREW_CASK_OPTS already in the environment is left alone — if you have
-# set one, it is more specific than this guess.
-if [ ! -w /Applications ] && [ -z "${HOMEBREW_CASK_OPTS:-}" ]; then
-  export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
-  mkdir -p "$HOME/Applications"
-  info "/Applications is not writable — installing casks into ~/Applications"
+# set one, it is more specific than this guess. So is a path written to
+# ~/.config/davconf/cask-appdir, which overrides the test outright: some
+# machines pass it and still refuse the install, and a stated answer beats a
+# clever guess.
+cask_appdir_file="${XDG_CONFIG_HOME:-$HOME/.config}/davconf/cask-appdir"
+if [ -z "${HOMEBREW_CASK_OPTS:-}" ]; then
+  cask_appdir=""
+  if [ -r "$cask_appdir_file" ]; then
+    cask_appdir="$(sed -e 's/#.*//' -e 's/[[:space:]]*$//' "$cask_appdir_file" |
+                   grep -v '^$' | head -1)"
+    cask_appdir="${cask_appdir/#\~/$HOME}"
+    [ -n "$cask_appdir" ] && info "Installing casks into $cask_appdir (from ${cask_appdir_file##*/})"
+  elif [ ! -w /Applications ]; then
+    cask_appdir="$HOME/Applications"
+    info "/Applications is not writable — installing casks into $cask_appdir"
+  fi
+
+  if [ -n "$cask_appdir" ]; then
+    export HOMEBREW_CASK_OPTS="--appdir=$cask_appdir"
+    mkdir -p "$cask_appdir"
+  fi
 fi
 
 # Explicit arguments win over the machine's file; --all wins over both.

@@ -6,8 +6,10 @@
 #
 # Statement order matters: it determines $PATH precedence. Keep it.
 
-# Where this repo is checked out. %x is the file being sourced, so this
-# resolves the ~/.zshrc symlink back to the repo wherever davconf lives.
+# The zsh/ directory of this repo — the other files sourced below are its
+# siblings, so this is the directory rather than the repo root. %x is the file
+# being sourced, so it resolves the ~/.zshrc symlink back to the checkout
+# wherever davconf lives.
 # ($0 does NOT work here: in a startup .zshrc it is the shell, not the file.)
 # Needed this early because the prompt config below is sourced before oh-my-zsh.
 davconf_dir=${${(%):-%x}:A:h}
@@ -85,6 +87,15 @@ alias flushdns='sudo killall -HUP mDNSResponder'
 alias lg='lazygit'
 # /usr/bin/vi is Apple's vim, which is not the one brew installed.
 alias vi='vim'
+
+# Jump to this repo, wherever it happens to be cloned. :h is the repo root,
+# since $davconf_dir is the zsh/ directory inside it. The path is baked in at
+# definition time rather than looked up on each call, because $davconf_dir is
+# unset at the end of this file — ${(q)…} quotes it so a checkout path with
+# spaces still works.
+davconf_root=${davconf_dir:h}
+alias davconf="cd ${(q)davconf_root}"
+unset davconf_root
 
 # Personal hosts and project shortcuts.
 [[ -f "$davconf_dir/zshrc.privat" ]] && source "$davconf_dir/zshrc.privat"

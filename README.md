@@ -172,7 +172,30 @@ no per-machine flag to remember and nothing changes on a machine that does own
 reads a login shell, and a `brew install --cask` typed by hand never runs
 `brew/update.sh`. An existing `HOMEBREW_CASK_OPTS` is always left alone.
 
+If the test gets it wrong — some machines pass it and still refuse the install —
+state the answer instead: put a path in `~/.config/davconf/cask-appdir` and it
+overrides the test outright.
+
+```sh
+echo '~/Applications' > ~/.config/davconf/cask-appdir
+```
+
 Fonts need nothing: casks put them in `~/Library/Fonts` already.
+
+Where a cask actually put an app is not a guess: Homebrew moves the bundle to
+the appdir and leaves a symlink behind in the Caskroom pointing at it.
+
+```sh
+readlink "$(brew --prefix)"/Caskroom/aerospace/*/*/AeroSpace.app
+```
+
+An app that landed in the wrong place moves with a reinstall, which is cheap —
+the download is already cached:
+
+```sh
+brew uninstall --cask aerospace
+brew install --cask aerospace          # with the appdir now in effect
+```
 
 What this does *not* rescue is a cask that ships a `.pkg` installer rather than
 an app bundle — `temurin`, for one. Those run Apple's installer against `/` and

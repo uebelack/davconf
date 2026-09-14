@@ -17,8 +17,17 @@ done
 # `brew install --cask` typed by hand; brew/update.sh repeats the same test for
 # the Brewfiles, since the daily background update never reads this file.
 # Nothing changes where /Applications is writable, and an existing value wins.
-if [ ! -w /Applications ] && [ -z "${HOMEBREW_CASK_OPTS:-}" ]; then
-  export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
+# A path in ~/.config/davconf/cask-appdir overrides the test outright, for a
+# machine that passes it and still refuses the install.
+if [ -z "${HOMEBREW_CASK_OPTS:-}" ]; then
+  cask_appdir_file="${XDG_CONFIG_HOME:-$HOME/.config}/davconf/cask-appdir"
+  if [ -r "$cask_appdir_file" ]; then
+    cask_appdir="${$(sed -e 's/#.*//' -e 's/[[:space:]]*$//' "$cask_appdir_file" | grep -v '^$' | head -1)/#\~/$HOME}"
+    [ -n "$cask_appdir" ] && export HOMEBREW_CASK_OPTS="--appdir=$cask_appdir"
+  elif [ ! -w /Applications ]; then
+    export HOMEBREW_CASK_OPTS="--appdir=$HOME/Applications"
+  fi
+  unset cask_appdir_file cask_appdir
 fi
 
 # pyenv. The shims have to be on $PATH from a login file, not just ~/.zshrc, or
