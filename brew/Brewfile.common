@@ -3,9 +3,16 @@
 # This profile is always applied; the others are opt-in per machine.
 
 # shell and terminal
-brew "neovim"      # $EDITOR
+brew "vim"         # $EDITOR — macOS ships one, but an old build without
+                   # +clipboard, so the yank register and the system
+                   # clipboard stay separate
 brew "gnupg"       # GPG_TTY, signed commits
 brew "lazygit"     # the `lg` alias
+
+# window management — AeroSpace is not in homebrew-core, only in the author's
+# own tap. Its config lives in aerospace/aerospace.toml in this repo.
+tap "nikitabobko/tap"
+cask "aerospace"
 
 # general tooling
 cask "ghostty"

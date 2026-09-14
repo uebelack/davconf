@@ -119,6 +119,10 @@ run_module zsh
 # next time a terminal opens.
 run_module ghostty
 
+# Window management. Just a symlink like the terminal config, but this one can
+# tell a running AeroSpace to re-read it, so it applies without a restart.
+run_module aerospace
+
 # The browser, next to the terminal it shares a palette with. Builds the theme
 # and reports it; loading it is a one-off manual step Chrome allows no way
 # around, and the module goes quiet once a machine opts out or has it applied.

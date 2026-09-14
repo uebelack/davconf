@@ -2,7 +2,7 @@
 #
 # Install or update the davconf zsh environment: oh-my-zsh, the spaceship
 # theme, the custom plugins and the shared .zshrc. The tools the .zshrc hooks
-# into (neovim, direnv, the version managers) come from brew/Brewfile.common
+# into (vim, direnv, the version managers) come from brew/Brewfile.common
 # and the language profiles; the .zshrc guards each one, so a machine missing
 # any of them still gets a working shell. Safe to run any time —
 # every step is idempotent, oh-my-zsh and the plugins are pulled to their

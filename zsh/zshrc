@@ -42,7 +42,7 @@ source "$ZSH/oh-my-zsh.sh"
 [[ -f "$davconf_dir/colors.zsh" ]] && source "$davconf_dir/colors.zsh"
 
 # ----------------------------------------------------------- user configuration
-export EDITOR=nvim
+export EDITOR=vim
 
 # ---------------------------------------------------------------------- node
 # Sourcing nvm.sh takes ~500ms of every single shell, and all it does up front
@@ -83,7 +83,8 @@ nvm() {
 # -------------------------------------------------------------------- aliases
 alias flushdns='sudo killall -HUP mDNSResponder'
 alias lg='lazygit'
-alias vi='nvim'
+# /usr/bin/vi is Apple's vim, which is not the one brew installed.
+alias vi='vim'
 
 # Personal hosts and project shortcuts.
 [[ -f "$davconf_dir/zshrc.privat" ]] && source "$davconf_dir/zshrc.privat"

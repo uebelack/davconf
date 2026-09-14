@@ -80,6 +80,7 @@ brew trust --tap arthur-ficial/tap
 | `jenv/`     | Registers every installed JDK with jenv                    |
 | `zsh/`      | oh-my-zsh, spaceship prompt, plugins, `.zshrc` + `.zprofile` |
 | `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      |
+| `aerospace/`| The AeroSpace window manager config, linked into `$HOME`    |
 | `chrome/`   | The Synthwave '85 Chrome theme, and how to load it          |
 | `vscode/`   | The Synthwave '85 theme for VS Code and Cursor              |
 | `intellij/` | The Synthwave '85 theme for the JetBrains IDEs              |
@@ -98,7 +99,7 @@ split into profiles so each machine installs only what it is actually for:
 
 | Profile   | Contents                                                   |
 | --------- | ---------------------------------------------------------- |
-| `common`  | Always applied: the bare terminal — neovim, lazygit, gnupg, Ghostty, the Nerd Font |
+| `common`  | Always applied: the bare terminal — vim, lazygit, gnupg, Ghostty, the Nerd Font |
 | `dev`     | Toolchains: the version managers, Python, JVM              |
 | `cloud`   | AWS, Azure, gcloud, Terraform                              |
 | `privat`  | Machines with no install restrictions: GUI apps, general CLI tools, local AI, Spotify |
@@ -384,6 +385,41 @@ alone), and never runs from the daily auto-update.
 To add a tweak, add a `set_default` line to `mac/update.sh` with the domain,
 key, type and a short description; the comparison, reporting and app restart
 come for free.
+
+### aerospace
+
+`aerospace/update.sh` links `~/.aerospace.toml` to `aerospace/aerospace.toml` in
+this repo — the config for [AeroSpace](https://nikitabobko.github.io/AeroSpace),
+the tiling window manager installed by `Brewfile.common`. An existing real file
+is backed up first, and a link that already points here is left alone.
+
+```sh
+./aerospace/update.sh          # link the config
+./aerospace/update.sh --check  # report what would change, change nothing
+```
+
+Unlike the terminal, a running AeroSpace can be told to re-read its config, so
+the script does that itself with `aerospace reload-config` and the change
+applies without a restart. A config error surfaces there and then, as AeroSpace's
+own message.
+
+AeroSpace reads `~/.aerospace.toml` first and only falls back to
+`~/.config/aerospace/aerospace.toml`, so this repo owns the first path — the one
+that wins — and the second should stay absent. The script says so if it finds
+one being shadowed.
+
+`start-at-login = true`, so AeroSpace comes back after a reboot. AeroSpace
+registers that login item when it starts, not when it reloads its config, so
+turning it on takes effect from the next launch — `killall AeroSpace && open -a
+AeroSpace` if you do not want to wait for a reboot.
+
+Every `move-node-to-workspace` binding carries `--focus-follows-window`: sending
+a window to a workspace takes you with it, rather than leaving you staring at
+the space it just left.
+
+`auto-reload-config = false` is left as it was, which is fine — this script
+reloads explicitly, and that is more reliable than a file watcher pointed at a
+symlink.
 
 ### chrome
 
