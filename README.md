@@ -230,9 +230,28 @@ disappears on the next upgrade, which would leave jenv pointing at nothing.
 - [spaceship-prompt](https://github.com/spaceship-prompt/spaceship-prompt) theme
 - [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) and
   [zsh-syntax-highlighting](https://github.com/zsh-users/zsh-syntax-highlighting)
-- symlinks `~/.zshrc` -> `zsh/zshrc` and `~/.zprofile` -> `zsh/zprofile` (any
-  existing file is backed up first)
+- symlinks `~/.zshrc` -> `zsh/zshrc` (any existing file is backed up first)
+- appends a marked block to `~/.zprofile` that sources `zsh/zprofile`
 - `zsh/autoupdate.zsh`, the daily background refresh described above
+
+`~/.zprofile` is the one file this repo does not own outright. A managed machine
+can have something of its own that rewrites it, and a symlink loses that fight
+twice over: the davconf version is replaced, and a tool writing *through* the
+symlink truncates `zsh/zprofile` in the checkout — which is how corporate `$PATH`
+setup ends up in a git diff. So `zsh/update.sh` appends a marked block instead:
+
+```sh
+# >>> davconf >>>
+[ -f ~/davconf/zsh/zprofile ] && . ~/davconf/zsh/zprofile
+# <<< davconf <<<
+```
+
+Everything else in the file is left exactly as found. A rewrite that drops the
+block costs nothing beyond the next update run, which puts it back — it
+self-heals rather than fighting. The block sources the repo copy rather than
+inlining it, so editing `zsh/zprofile` still takes effect without re-running the
+script, and an older davconf's symlink is replaced with a real file on the first
+run. `~/.zshrc` stays a symlink: nothing has ever fought us for it.
 
 `zshrc` and `zprofile` split by *which shells read them*, not by topic. zsh
 reads `~/.zprofile` for every login shell, interactive or not, and `~/.zshrc`
@@ -562,7 +581,7 @@ The shell config is split three ways by how shareable each part is:
 
 | File                    | Contents                            | In git? |
 | ----------------------- | ----------------------------------- | ------- |
-| `zsh/zprofile`          | Login-shell `$PATH` — same everywhere | yes     |
+| `zsh/zprofile`          | Login-shell `$PATH` — same everywhere | sourced from a block in `~/.zprofile` |
 | `zsh/zshrc`             | Shared setup — same on every machine | yes     |
 | `zsh/zshrc.privat`      | Personal hosts and project shortcuts | yes     |
 | `~/.zshrc.local`        | API keys, per-machine overrides       | **no**  |

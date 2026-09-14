@@ -39,8 +39,51 @@ link_config() {
   printf '    %-24s linked\n' "$(basename "$dest")"
 }
 
+# ~/.zprofile is not a symlink, and deliberately so. A managed machine can have
+# something of its own that rewrites that file — and when it does, writing
+# through a symlink truncates the *repo's* copy, which is how corporate $PATH
+# setup ends up in a git diff. So own a marked block inside whatever file is
+# there instead: the rest of the file is left exactly as found, and a rewrite
+# that drops the block only costs us until the next run, which puts it back.
+#
+# The block sources the repo copy rather than inlining it, so editing
+# zsh/zprofile still takes effect without re-running this script.
+BLOCK_START="# >>> davconf >>>"
+BLOCK_END="# <<< davconf <<<"
+
+source_block() {
+  local src="$1" dest="$2"
+  local block
+  block="$(printf '%s\n[ -f %s ] && . %s\n%s\n' \
+             "$BLOCK_START" "$src" "$src" "$BLOCK_END")"
+
+  if [ -f "$dest" ] && grep -qF "$BLOCK_START" "$dest"; then
+    # Present already — but the path in it may be stale, so compare.
+    if grep -qF ". $src" "$dest"; then
+      printf '    %-24s already sourced\n' "$(basename "$dest")"
+      return
+    fi
+    warn "updating the davconf block in $dest"
+    # Drop the old block, then fall through and append the current one.
+    local tmp="$dest.davconf.$$"
+    awk -v s="$BLOCK_START" -v e="$BLOCK_END" \
+      'index($0,s){skip=1} !skip{print} index($0,e){skip=0}' "$dest" > "$tmp"
+    mv "$tmp" "$dest"
+  fi
+
+  # A symlink here is this repo's own doing, from before the block existed.
+  if [ -L "$dest" ]; then
+    warn "$dest is a symlink from an older davconf — replacing it with a file"
+    rm "$dest"
+  fi
+
+  [ -s "$dest" ] && printf '\n' >> "$dest"
+  printf '%s\n' "$block" >> "$dest"
+  printf '    %-24s sourced\n' "$(basename "$dest")"
+}
+
 info "Linking shell configuration"
-link_config "$DAVCONF_DIR/zsh/zprofile" "$HOME/.zprofile"
+source_block "$DAVCONF_DIR/zsh/zprofile" "$HOME/.zprofile"
 link_config "$DAVCONF_DIR/zsh/zshrc" "$HOME/.zshrc"
 mkdir -p "$HOME/.zfunctions"
 

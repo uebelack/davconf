@@ -1,6 +1,13 @@
-# ~/.zprofile — managed by davconf (github.com/uebelack/davconf)
+# Login-shell setup — sourced from ~/.zprofile, not symlinked as it.
 #
-# Login shells only, and read before ~/.zshrc. What belongs here is the $PATH
+# zsh/update.sh appends a marked block to whatever ~/.zprofile is already there
+# and that block sources this file. A symlink would lose to any machine that
+# rewrites ~/.zprofile on its own — worse, a tool writing through the symlink
+# truncates *this* file, which is how corporate $PATH setup ends up in a git
+# diff. The block coexists with a file somebody else owns, and a rewrite that
+# drops it costs nothing beyond the next update run, which puts it back.
+#
+# Read before ~/.zshrc, for every login shell. What belongs here is the $PATH
 # a *non-interactive* login shell also needs — anything a script or a GUI-
 # launched process should see. Interactive-only setup (aliases, prompt,
 # completions) belongs in zsh/zshrc instead.
