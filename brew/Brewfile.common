@@ -14,6 +14,12 @@ brew "lazygit"     # the `lg` alias
 tap "nikitabobko/tap"
 cask "aerospace"
 
+# AeroSpace's leader key. Its modifiers are cmd, alt, ctrl and shift and
+# nothing else — fn never reaches it — so Karabiner is what turns fn into a
+# modifier AeroSpace can bind. On a Swiss German layout that matters: plain alt
+# is where [ ] | { } # @ ~ live. See karabiner/ in this repo.
+cask "karabiner-elements"
+
 # general tooling
 cask "ghostty"
 cask "maccy"

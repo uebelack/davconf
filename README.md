@@ -80,6 +80,7 @@ brew trust --tap arthur-ficial/tap
 | `jenv/`     | Registers every installed JDK with jenv                    |
 | `zsh/`      | oh-my-zsh, spaceship prompt, plugins, `.zshrc` + `.zprofile` |
 | `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      |
+| `karabiner/`| Makes fn AeroSpace's leader key, which AeroSpace cannot     |
 | `aerospace/`| The AeroSpace window manager config, linked into `$HOME`    |
 | `chrome/`   | The Synthwave '85 Chrome theme, and how to load it          |
 | `vscode/`   | The Synthwave '85 theme for VS Code and Cursor              |
@@ -541,6 +542,28 @@ registers that login item when it starts, not when it reloads its config, so
 turning it on takes effect from the next launch — `killall AeroSpace && open -a
 AeroSpace` if you do not want to wait for a reboot.
 
+The leader key is fn, which reaches the config as `ctrl-alt-cmd-` because
+that is what `karabiner/` turns it into. `fn+h` focuses left, `fn+shift+h`
+moves left, `fn+1` goes to workspace 1, `fn+shift+1` sends the window there.
+
+It is fn rather than plain alt because this is a Swiss German layout, where the
+option layer is not spare room — it is where the programming characters are
+typed:
+
+| binding | costs | | binding | costs |
+|---|---|---|---|---|
+| `alt-5` | `[` | | `alt-3` | `#` |
+| `alt-6` | `]` | | `alt-g` | `@` |
+| `alt-7` | `\|` | | `alt-n` | `~` (dead key) |
+| `alt-8` | `{` | | `alt-e` | `€` |
+| `alt-9` | `}` | | `alt-equal` | `´` (dead key) |
+
+The workspace bindings for 5 through 9 alone cost all five brackets, and there
+is no arranging of them that does not cost something: every letter and digit on
+that layer is a character somebody types. Moving the leader off alt is what
+gives them all back, and it is why workspaces 3, G and N — dropped one at a
+time as their characters were missed — are bound again.
+
 Every `move-node-to-workspace` binding carries `--focus-follows-window`: sending
 a window to a workspace takes you with it, rather than leaving you staring at
 the space it just left.
@@ -548,6 +571,62 @@ the space it just left.
 `auto-reload-config = false` is left as it was, which is fine — this script
 reloads explicitly, and that is more reliable than a file watcher pointed at a
 symlink.
+
+### karabiner
+
+`karabiner/update.sh` installs one Karabiner-Elements rule: fn plus a key
+becomes cmd+ctrl+alt plus that key, which is what makes fn usable as
+AeroSpace's leader.
+
+```sh
+./karabiner/update.sh          # install the rule where out of date
+./karabiner/update.sh --check  # report what would change, change nothing
+```
+
+AeroSpace's modifiers are cmd, alt, ctrl and shift, and fn is not one of them.
+It is not a binding AeroSpace fails to honour either — it is a line it refuses
+to parse:
+
+```
+[ERROR] mode.main.binding.fn-alt-h: Can't parse modifiers in 'fn-alt-h' binding
+```
+
+macOS handles fn below the level any hotkey registration can see, so no config
+change reaches it. Karabiner sits lower still, at the event tap, which is why
+it can do what the config cannot. fn becomes cmd+ctrl+alt — three modifiers
+AeroSpace does understand, in a combination nothing else on the system claims.
+Not the full hyper of cmd+ctrl+alt+shift, deliberately: that would swallow
+shift, and shift is what tells `move` from `focus`. With three, fn+shift is
+still a second level.
+
+What the rule does *not* do is remap the fn key itself. That is the obvious way
+to write it, and it quietly costs the rest of the key — fn+arrows for home and
+end, fn+delete for forward delete, fn+F1 for a real F-key — because Karabiner
+would be swallowing fn before macOS ever saw it. Instead the rule claims only
+fn together with the keys AeroSpace actually binds, so every other fn
+combination is untouched, and a bare fn tap still does whatever System Settings
+says it does.
+
+Which keys those are is read out of `aerospace/aerospace.toml` rather than
+repeated in the module: every `ctrl-alt-cmd-` binding, shifted or not, becomes
+one manipulator. Bind a new key over there, run this, and the rule grows to
+match — the two cannot drift apart. Shift is `optional` rather than `mandatory`
+in each manipulator, which is what lets one rule cover both `fn+h` and
+`fn+shift+h` and still pass the shift through.
+
+The rule is written to two places, because they do different jobs. The asset
+under `~/.config/karabiner/assets/complex_modifications/` is what makes it
+visible in the Karabiner UI, where it can be inspected and removed like any
+other rule. The copy inside `karabiner.json` is what actually runs — into every
+profile, not just the selected one, so switching profile does not silently
+switch the leader key off. A re-run replaces what this repo put there before,
+matched on a `davconf:` prefix in the description, so its own rule is never
+stacked twice and a rule you added yourself is never touched.
+
+Karabiner reloads on its own when the file changes, so nothing needs
+restarting. What no script can do is grant it a driver extension and Input
+Monitoring — until that is done in System Settings the rule is installed and
+inert, so the module says so when it cannot see Karabiner running.
 
 ### chrome
 

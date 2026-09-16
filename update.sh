@@ -119,6 +119,12 @@ run_module zsh
 # next time a terminal opens.
 run_module ghostty
 
+# The leader key AeroSpace itself cannot provide: fn is not one of its four
+# modifiers and never reaches it, so Karabiner turns fn+key into cmd+ctrl+alt+key
+# below the level any hotkey sees. Runs before aerospace because the rule is
+# generated from that module's bindings.
+run_module karabiner
+
 # Window management. Just a symlink like the terminal config, but this one can
 # tell a running AeroSpace to re-read it, so it applies without a restart.
 run_module aerospace

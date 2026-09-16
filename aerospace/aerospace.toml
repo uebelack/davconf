@@ -111,7 +111,16 @@ gaps.outer.right =      0
     #                   keypadMinus, keypadMultiply, keypadPlus
     # - Arrows.         left, down, up, right
 
-    # All possible modifiers: cmd, alt, ctrl, shift
+    # All possible modifiers: cmd, alt, ctrl, shift — and that list is the
+    # whole reason these bindings look the way they do. fn is not on it and
+    # never reaches AeroSpace at all, so Karabiner maps fn to cmd+ctrl+alt and
+    # every binding below is written in those three. Pressing fn is pressing
+    # all three at once; fn+shift is the second level, for moving rather than
+    # focusing. See karabiner/ in this repo.
+    #
+    # The leader is fn rather than plain alt because this is a Swiss German
+    # layout, where the option layer is not spare room — it is where [ ] | { }
+    # # @ ~ are typed. alt-5 through alt-9 alone cost all five brackets.
 
     # All possible commands: https://nikitabobko.github.io/AeroSpace/commands
 
@@ -122,102 +131,100 @@ gaps.outer.right =      0
     # 'tell application "Terminal" to tell (do script) to activate' '''
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#layout
-    alt-slash = 'layout tiles horizontal vertical'
-    alt-comma = 'layout accordion horizontal vertical'
+    ctrl-alt-cmd-slash = 'layout tiles horizontal vertical'
+    ctrl-alt-cmd-comma = 'layout accordion horizontal vertical'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#focus
-    alt-h = 'focus left'
-    alt-j = 'focus down'
-    alt-k = 'focus up'
-    alt-l = 'focus right'
+    ctrl-alt-cmd-h = 'focus left'
+    ctrl-alt-cmd-j = 'focus down'
+    ctrl-alt-cmd-k = 'focus up'
+    ctrl-alt-cmd-l = 'focus right'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#move
-    alt-shift-h = 'move left'
-    alt-shift-j = 'move down'
-    alt-shift-k = 'move up'
-    alt-shift-l = 'move right'
+    ctrl-alt-cmd-shift-h = 'move left'
+    ctrl-alt-cmd-shift-j = 'move down'
+    ctrl-alt-cmd-shift-k = 'move up'
+    ctrl-alt-cmd-shift-l = 'move right'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#resize
-    alt-minus = 'resize smart -50'
-    alt-equal = 'resize smart +50'
+    ctrl-alt-cmd-minus = 'resize smart -50'
+    ctrl-alt-cmd-equal = 'resize smart +50'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
-    alt-1 = 'workspace 1'
-    alt-2 = 'workspace 2'
-    # alt-3 = 'workspace 3'
-    alt-4 = 'workspace 4'
-    alt-5 = 'workspace 5'
-    alt-6 = 'workspace 6'
-    alt-7 = 'workspace 7'
-    alt-8 = 'workspace 8'
-    alt-9 = 'workspace 9'
-    alt-a = 'workspace A' # In your config, you can drop workspace bindings that you don't need
-    alt-b = 'workspace B'
-    alt-c = 'workspace C'
-    alt-d = 'workspace D'
-    alt-e = 'workspace E'
-    alt-f = 'workspace F'
-    # alt-g = 'workspace G'
-    alt-i = 'workspace I'
-    alt-m = 'workspace M'
-    # alt-n is deliberately absent: on a Swiss German layout option-n is the
-    # dead key for ~, and binding it here means no tilde in any app.
-    # Workspace N is still reachable with `aerospace workspace N`.
-    alt-o = 'workspace O'
-    alt-p = 'workspace P'
-    alt-q = 'workspace Q'
-    alt-r = 'workspace R'
-    alt-s = 'workspace S'
-    alt-t = 'workspace T'
-    alt-u = 'workspace U'
-    alt-v = 'workspace V'
-    alt-w = 'workspace W'
-    alt-x = 'workspace X'
-    alt-y = 'workspace Y'
-    alt-z = 'workspace Z'
+    ctrl-alt-cmd-1 = 'workspace 1'
+    ctrl-alt-cmd-2 = 'workspace 2'
+    ctrl-alt-cmd-3 = 'workspace 3'
+    ctrl-alt-cmd-4 = 'workspace 4'
+    ctrl-alt-cmd-5 = 'workspace 5'
+    ctrl-alt-cmd-6 = 'workspace 6'
+    ctrl-alt-cmd-7 = 'workspace 7'
+    ctrl-alt-cmd-8 = 'workspace 8'
+    ctrl-alt-cmd-9 = 'workspace 9'
+    ctrl-alt-cmd-a = 'workspace A' # In your config, you can drop workspace bindings that you don't need
+    ctrl-alt-cmd-b = 'workspace B'
+    ctrl-alt-cmd-c = 'workspace C'
+    ctrl-alt-cmd-d = 'workspace D'
+    ctrl-alt-cmd-e = 'workspace E'
+    ctrl-alt-cmd-f = 'workspace F'
+    ctrl-alt-cmd-g = 'workspace G'
+    ctrl-alt-cmd-i = 'workspace I'
+    ctrl-alt-cmd-m = 'workspace M'
+    ctrl-alt-cmd-n = 'workspace N'
+    ctrl-alt-cmd-o = 'workspace O'
+    ctrl-alt-cmd-p = 'workspace P'
+    ctrl-alt-cmd-q = 'workspace Q'
+    ctrl-alt-cmd-r = 'workspace R'
+    ctrl-alt-cmd-s = 'workspace S'
+    ctrl-alt-cmd-t = 'workspace T'
+    ctrl-alt-cmd-u = 'workspace U'
+    ctrl-alt-cmd-v = 'workspace V'
+    ctrl-alt-cmd-w = 'workspace W'
+    ctrl-alt-cmd-x = 'workspace X'
+    ctrl-alt-cmd-y = 'workspace Y'
+    ctrl-alt-cmd-z = 'workspace Z'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
     # --focus-follows-window: sending a window somewhere takes you with it,
     # rather than leaving you staring at the space it just left.
-    alt-shift-1 = 'move-node-to-workspace --focus-follows-window 1'
-    alt-shift-2 = 'move-node-to-workspace --focus-follows-window 2'
-    alt-shift-3 = 'move-node-to-workspace --focus-follows-window 3'
-    alt-shift-4 = 'move-node-to-workspace --focus-follows-window 4'
-    alt-shift-5 = 'move-node-to-workspace --focus-follows-window 5'
-    alt-shift-6 = 'move-node-to-workspace --focus-follows-window 6'
-    alt-shift-7 = 'move-node-to-workspace --focus-follows-window 7'
-    alt-shift-8 = 'move-node-to-workspace --focus-follows-window 8'
-    alt-shift-9 = 'move-node-to-workspace --focus-follows-window 9'
-    alt-shift-a = 'move-node-to-workspace --focus-follows-window A'
-    alt-shift-b = 'move-node-to-workspace --focus-follows-window B'
-    alt-shift-c = 'move-node-to-workspace --focus-follows-window C'
-    alt-shift-d = 'move-node-to-workspace --focus-follows-window D'
-    alt-shift-e = 'move-node-to-workspace --focus-follows-window E'
-    alt-shift-f = 'move-node-to-workspace --focus-follows-window F'
-    alt-shift-g = 'move-node-to-workspace --focus-follows-window G'
-    alt-shift-i = 'move-node-to-workspace --focus-follows-window I'
-    alt-shift-m = 'move-node-to-workspace --focus-follows-window M'
-    alt-shift-n = 'move-node-to-workspace --focus-follows-window N'
-    alt-shift-o = 'move-node-to-workspace --focus-follows-window O'
-    alt-shift-p = 'move-node-to-workspace --focus-follows-window P'
-    alt-shift-q = 'move-node-to-workspace --focus-follows-window Q'
-    alt-shift-r = 'move-node-to-workspace --focus-follows-window R'
-    alt-shift-s = 'move-node-to-workspace --focus-follows-window S'
-    alt-shift-t = 'move-node-to-workspace --focus-follows-window T'
-    alt-shift-u = 'move-node-to-workspace --focus-follows-window U'
-    alt-shift-v = 'move-node-to-workspace --focus-follows-window V'
-    alt-shift-w = 'move-node-to-workspace --focus-follows-window W'
-    alt-shift-x = 'move-node-to-workspace --focus-follows-window X'
-    alt-shift-y = 'move-node-to-workspace --focus-follows-window Y'
-    alt-shift-z = 'move-node-to-workspace --focus-follows-window Z'
+    ctrl-alt-cmd-shift-1 = 'move-node-to-workspace --focus-follows-window 1'
+    ctrl-alt-cmd-shift-2 = 'move-node-to-workspace --focus-follows-window 2'
+    ctrl-alt-cmd-shift-3 = 'move-node-to-workspace --focus-follows-window 3'
+    ctrl-alt-cmd-shift-4 = 'move-node-to-workspace --focus-follows-window 4'
+    ctrl-alt-cmd-shift-5 = 'move-node-to-workspace --focus-follows-window 5'
+    ctrl-alt-cmd-shift-6 = 'move-node-to-workspace --focus-follows-window 6'
+    ctrl-alt-cmd-shift-7 = 'move-node-to-workspace --focus-follows-window 7'
+    ctrl-alt-cmd-shift-8 = 'move-node-to-workspace --focus-follows-window 8'
+    ctrl-alt-cmd-shift-9 = 'move-node-to-workspace --focus-follows-window 9'
+    ctrl-alt-cmd-shift-a = 'move-node-to-workspace --focus-follows-window A'
+    ctrl-alt-cmd-shift-b = 'move-node-to-workspace --focus-follows-window B'
+    ctrl-alt-cmd-shift-c = 'move-node-to-workspace --focus-follows-window C'
+    ctrl-alt-cmd-shift-d = 'move-node-to-workspace --focus-follows-window D'
+    ctrl-alt-cmd-shift-e = 'move-node-to-workspace --focus-follows-window E'
+    ctrl-alt-cmd-shift-f = 'move-node-to-workspace --focus-follows-window F'
+    ctrl-alt-cmd-shift-g = 'move-node-to-workspace --focus-follows-window G'
+    ctrl-alt-cmd-shift-i = 'move-node-to-workspace --focus-follows-window I'
+    ctrl-alt-cmd-shift-m = 'move-node-to-workspace --focus-follows-window M'
+    ctrl-alt-cmd-shift-n = 'move-node-to-workspace --focus-follows-window N'
+    ctrl-alt-cmd-shift-o = 'move-node-to-workspace --focus-follows-window O'
+    ctrl-alt-cmd-shift-p = 'move-node-to-workspace --focus-follows-window P'
+    ctrl-alt-cmd-shift-q = 'move-node-to-workspace --focus-follows-window Q'
+    ctrl-alt-cmd-shift-r = 'move-node-to-workspace --focus-follows-window R'
+    ctrl-alt-cmd-shift-s = 'move-node-to-workspace --focus-follows-window S'
+    ctrl-alt-cmd-shift-t = 'move-node-to-workspace --focus-follows-window T'
+    ctrl-alt-cmd-shift-u = 'move-node-to-workspace --focus-follows-window U'
+    ctrl-alt-cmd-shift-v = 'move-node-to-workspace --focus-follows-window V'
+    ctrl-alt-cmd-shift-w = 'move-node-to-workspace --focus-follows-window W'
+    ctrl-alt-cmd-shift-x = 'move-node-to-workspace --focus-follows-window X'
+    ctrl-alt-cmd-shift-y = 'move-node-to-workspace --focus-follows-window Y'
+    ctrl-alt-cmd-shift-z = 'move-node-to-workspace --focus-follows-window Z'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
-    alt-tab = 'workspace-back-and-forth'
+    ctrl-alt-cmd-tab = 'workspace-back-and-forth'
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-workspace-to-monitor
-    alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
+    ctrl-alt-cmd-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#mode
-    alt-shift-semicolon = 'mode service'
+    ctrl-alt-cmd-shift-semicolon = 'mode service'
 
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -230,7 +237,7 @@ gaps.outer.right =      0
     # sticky is not yet supported https://github.com/nikitabobko/AeroSpace/issues/2
     #s = ['layout sticky tiling', 'mode main']
 
-    alt-shift-h = ['join-with left', 'mode main']
-    alt-shift-j = ['join-with down', 'mode main']
-    alt-shift-k = ['join-with up', 'mode main']
-    alt-shift-l = ['join-with right', 'mode main']
+    shift-h = ['join-with left', 'mode main']
+    shift-j = ['join-with down', 'mode main']
+    shift-k = ['join-with up', 'mode main']
+    shift-l = ['join-with right', 'mode main']
