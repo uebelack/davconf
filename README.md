@@ -373,24 +373,57 @@ verbatim, all sixteen ANSI colours, so the terminal inside the editor and the
 terminal beside it are the same terminal.
 
 ```sh
-./vscode/update.sh          # link it into every editor found
+./vscode/update.sh          # build and install where out of date
 ./vscode/update.sh --check  # report what would change, change nothing
 ```
 
-Both editors scan their extensions directory at startup and follow symlinks, so
-a link into `~/.vscode/extensions`, `~/.vscode-insiders/extensions` or
-`~/.cursor/extensions` is the whole install — no packaging, no marketplace.
-Cursor is a VS Code fork and reads the same extension format, which is why one
-directory serves all three. Editing
-`vscode/theme/themes/synthwave-85-color-theme.json` reaches the editor on its
-next restart.
+A symlink into `~/.cursor/extensions` used to be the whole install, and that is
+no longer true. Current VS Code and Cursor keep the list of installed
+extensions in `extensions.json` beside them and scan *that*, not the directory:
+a folder nobody registered is not a discovery, it is a leftover. The scan
+writes its name into `.obsolete`, the delete-later list, and skips it from then
+on. Nothing looks broken from outside — the link is healthy, the manifest is
+valid, `--check` says "linked", and the theme is simply absent from the picker.
+The only place that says so is the editor's own log, once per start:
+
+```
+[info] Marked extension as removed davconf.synthwave-85-1.0.0
+```
+
+So the theme goes in the way the editor expects, through its own CLI, which
+means packaging it as a `.vsix` first — a zip holding the manifest, the
+content-type map and the extension itself. `vsce` would build it, but it wants
+node and the network for what is three files in an archive, so `zip` does it
+instead. The vsix is a build artifact and is not committed. It is rebuilt and
+reinstalled whenever a source file is newer than the installed copy, so a `git
+pull` that changes the theme reaches the editor on the next run.
+
+What that costs is liveness: the editor now owns a copy, so editing
+`vscode/theme/themes/synthwave-85-color-theme.json` no longer arrives on
+restart alone — it arrives on the next run of this script. The intellij module
+makes the same trade for the same reason.
+
+"Up to date" is read off `extensions.json`, not off the directory. An uninstall
+leaves the folder behind to delete later, so a folder can outlive its
+registration — and trusting it would mean reporting "up to date" about an
+extension the editor has already written off, which is the exact failure this
+module exists to avoid. The directory is asked one thing only: how old it is.
+
+Two pieces of the old approach are cleaned up on the way past, since a machine
+that ran the previous version has both: the symlink, which occupies the
+directory name the install wants, and that name in `.obsolete`, which would
+have the next scan skip the fresh copy just as it skipped the link. Only our
+own key is removed; the rest of that list belongs to other extensions.
 
 An editor counts as installed if *any* of its traces exist: the extensions
 directory, its `settings.json`, its app bundle in `/Applications` or
 `~/Applications`, or its CLI on `$PATH`. The extensions directory alone is not
 proof — an editor that has never installed an extension does not have one yet,
 and treating that as "not installed" silently skips a perfectly real editor.
-The directory is created when it is the piece that is missing.
+The CLI is the piece that does the installing, so when it is not on `$PATH` it
+is looked for at `Contents/Resources/app/bin/` inside the bundle, where every
+one of them ships it; an editor with no CLI anywhere is reported rather than
+skipped quietly.
 
 `package.json` asks for `engines.vscode: ^1.40.0` deliberately. A colour theme
 has no API surface to break against, and a higher floor only means an older
