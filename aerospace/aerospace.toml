@@ -144,7 +144,7 @@ gaps.outer.right =      0
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
     alt-1 = 'workspace 1'
     alt-2 = 'workspace 2'
-    alt-3 = 'workspace 3'
+    # alt-3 = 'workspace 3'
     alt-4 = 'workspace 4'
     alt-5 = 'workspace 5'
     alt-6 = 'workspace 6'
@@ -157,7 +157,7 @@ gaps.outer.right =      0
     alt-d = 'workspace D'
     alt-e = 'workspace E'
     alt-f = 'workspace F'
-    alt-g = 'workspace G'
+    # alt-g = 'workspace G'
     alt-i = 'workspace I'
     alt-m = 'workspace M'
     # alt-n is deliberately absent: on a Swiss German layout option-n is the
