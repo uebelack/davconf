@@ -1,51 +1,91 @@
 #!/usr/bin/env bash
 #
-# Teach fn to be AeroSpace's leader key, via Karabiner-Elements.
+# Teach caps lock to be AeroSpace's leader key, via Karabiner-Elements.
 #
 #   ./karabiner/update.sh          # install the rule where out of date
 #   ./karabiner/update.sh --check  # report what would change, change nothing
 #
-# AeroSpace's modifiers are cmd, alt, ctrl and shift. fn is not one of them and
-# cannot become one: macOS handles it below the level any hotkey registration
-# sees, so `fn-alt-h = ...` is not a binding AeroSpace fails to honour, it is a
-# line it refuses to parse. Karabiner sits lower still, at the event tap, which
-# is why it can do what the config cannot.
+# AeroSpace's modifiers are cmd, alt, ctrl and shift. A leader has to be one of
+# those, or become one — and on a Swiss German layout none of them is spare:
+# the option layer is where [ ] | { } # @ ~ are typed. So the leader is a key
+# that is not a modifier at all, turned into one below the level AeroSpace can
+# see. Karabiner sits at the event tap, which is why it can do that.
 #
-# So fn becomes cmd+ctrl+alt — three modifiers AeroSpace does understand, and a
-# combination nothing else on the system claims. Pressing fn is pressing all
-# three; fn+shift is the second level, which is what keeps `move` a shifted
-# `focus` the way it was under plain alt.
+# Caps lock held is cmd+ctrl+alt — three modifiers AeroSpace understands, in a
+# combination nothing else on the system claims. Not the full hyper of
+# cmd+ctrl+alt+shift, deliberately: that would swallow shift, and shift is what
+# tells `move` from `focus`. With three, caps+shift is still a second level.
 #
-# What it does NOT do is remap the fn key itself. That is the obvious way to
-# write this rule and it quietly costs you the rest of the key: fn+arrows for
-# home/end, fn+delete for forward delete, fn+F1 for a real F-key. Karabiner
-# would be swallowing fn before macOS ever sees it. Instead the rule claims
-# only fn plus the keys AeroSpace actually binds — letters, digits and a
-# handful of punctuation — so every other fn combination reaches macOS
-# untouched.
+# Caps lock rather than fn because fn is not in the same place twice. On the
+# built-in keyboard it is bottom left; on the Logitech MX Keys S it is bottom
+# right, the hand that is already on hjkl — and a Logitech fn is partly handled
+# in firmware, so it does not reliably reach Karabiner at all. Caps lock is on
+# every keyboard, in the same spot, left little finger, next to a.
 #
-# Which keys those are is read out of aerospace/aerospace.toml rather than
-# repeated here. The two files cannot drift: bind a new key over there, run
-# this, and the rule grows to match.
+# Unlike fn, caps lock has no second function worth keeping, so the rule can
+# claim the whole key rather than enumerating the keys AeroSpace binds. Tapped
+# on its own it sends escape, which is the more useful thing to have there.
 #
 # Create ~/.config/davconf/no-karabiner on a machine that does not want it.
 
 set -euo pipefail
 
-DAVCONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-AEROSPACE_TOML="$DAVCONF_DIR/aerospace/aerospace.toml"
 KARABINER_DIR="$HOME/.config/karabiner"
 CONFIG="$KARABINER_DIR/karabiner.json"
-ASSET="$KARABINER_DIR/assets/complex_modifications/davconf-fn-leader.json"
+ASSET="$KARABINER_DIR/assets/complex_modifications/davconf-leader.json"
+# What this module used to install, back when the leader was fn. Removed on
+# sight so the Karabiner UI does not go on listing a rule nothing installs.
+LEGACY_ASSET="$KARABINER_DIR/assets/complex_modifications/davconf-fn-leader.json"
 APP="Karabiner-Elements.app"
 # Every rule this repo owns starts with this, which is how a re-run finds its
 # own work to replace instead of stacking another copy beside it.
 MARKER="davconf:"
+GUIDANCE_LOG="$HOME/.local/share/karabiner/log/console_user_server.log"
 OPT_OUT="$HOME/.config/davconf/no-karabiner"
 BACKUP_SUFFIX="$(date +%Y%m%d%H%M%S).bak"
 
 info() { printf '\033[1;34m==>\033[0m %s\n' "$1"; }
 warn() { printf '\033[1;33m==>\033[0m %s\n' "$1"; }
+
+# An installed rule and a working one are different things, and the gap between
+# them is silent: Karabiner's agents need Input Monitoring and permission to run
+# in the background, neither of which a script can grant, and without them the
+# rule sits in karabiner.json doing nothing. Reporting "up to date" and stopping
+# there would be reporting the file, not the behaviour — so every exit path
+# comes through here first.
+report_liveness() {
+  local guidance
+
+  if ! pgrep -qf "Karabiner-Core-Service" || ! pgrep -qf "Karabiner-Console-User-Server"; then
+    warn "Karabiner is not running — the rule is installed and inert"
+    cat <<EOM
+    open -a Karabiner-Elements
+
+    It asks for two things, and needs both:
+      System Settings → General → Login Items & Extensions → Allow in the Background
+      System Settings → Privacy & Security → Input Monitoring
+
+    Until then caps lock is just caps lock, and AeroSpace hears nothing.
+EOM
+    return
+  fi
+
+  # Running is not the same as permitted: the agents come up and then sit there
+  # refusing connections until the two approvals above are given. Karabiner
+  # works that state out for itself and writes it to its log — anything other
+  # than 'none' is it asking for something. Read that rather than guess at it
+  # from the outside; if the log is not there to read, the process check above
+  # is as far as this can honestly go.
+  guidance="$(grep -o 'settings_window_guidance_setup changed: [a-z]* -> [a-z]*' \
+              "$GUIDANCE_LOG" 2>/dev/null | tail -1 | awk '{print $NF}')"
+  [ -z "$guidance" ] && return
+  [ "$guidance" = none ] && return
+
+  warn "Karabiner is running but still wants setup ($guidance) — the rule is inert until then"
+  cat <<EOM
+    open -a Karabiner-Elements   # its window says which approval is missing
+EOM
+}
 
 mode=apply
 for arg in "$@"; do
@@ -67,103 +107,76 @@ for base in "/Applications/$APP" "$HOME/Applications/$APP"; do
 done
 
 if [ -z "$app_dir" ]; then
-  printf '    %-24s Karabiner not installed\n' "fn leader"
+  printf '    %-24s Karabiner not installed\n' "caps lock leader"
   warn "brew/Brewfile.common installs it — run ./brew/update.sh first"
   exit 0
 fi
 
 if ! command -v python3 >/dev/null; then
-  printf '    %-24s python3 not found\n' "fn leader"
+  printf '    %-24s python3 not found\n' "caps lock leader"
   warn "the rule is JSON surgery on karabiner.json — python3 does it, and is missing"
   exit 1
 fi
 
 # --- the rule ---------------------------------------------------------------
-# Generated into a temp file first so a failure here leaves what is installed
-# alone rather than half-rewriting it.
+# Written to a temp file first so a failure here leaves what is installed alone
+# rather than half-rewriting it.
+#
+# shift is `optional: any` rather than mandatory, which is what lets one
+# manipulator cover both caps+h and caps+shift+h and still pass the shift
+# through to AeroSpace — that is what tells `move` from `focus`.
+#
+# `lazy` holds the three modifiers back until a key actually follows, so
+# holding caps and then thinking better of it emits nothing at all. 250ms
+# rather than Karabiner's default second for the tap, so a held leader that
+# ends in nothing does not turn into a stray escape a beat later.
 rule="$(mktemp -d)/rule.json"
 
-python3 - "$AEROSPACE_TOML" "$rule" "$MARKER" <<'PY'
-import json, re, sys
-
-toml_path, out_path, marker = sys.argv[1], sys.argv[2], sys.argv[3]
-
-# AeroSpace's key names are mostly Karabiner's too. These are the ones that are
-# spelled differently, plus the two whose names collide with nothing.
-RENAMED = {
-    "minus": "hyphen",
-    "equal": "equal_sign",
-    "leftSquareBracket": "open_bracket",
-    "rightSquareBracket": "close_bracket",
-    "backtick": "grave_accent_and_tilde",
-    "quote": "quote",
-    "backslash": "backslash",
-    "sectionSign": "non_us_backslash",
-    "enter": "return_or_enter",
-    "esc": "escape",
-    "backspace": "delete_or_backspace",
-    "forwardDelete": "delete_forward",
-    "pageUp": "page_up",
-    "pageDown": "page_down",
-    "left": "left_arrow",
-    "right": "right_arrow",
-    "up": "up_arrow",
-    "down": "down_arrow",
-}
-
-# Every binding written in the leader's three modifiers, shift or not: the
-# shifted ones are the same physical key, so they collapse to the same rule.
-keys = []
-for match in re.finditer(r"^\s*ctrl-alt-cmd-(?:shift-)?(\S+?)\s*=", open(toml_path).read(), re.M):
-    key = match.group(1)
-    if key not in keys:
-        keys.append(key)
-
-if not keys:
-    sys.exit("no ctrl-alt-cmd- bindings found in " + toml_path)
-
-manipulators = [
+cat > "$rule" <<'JSON'
+{
+  "description": "davconf: caps lock is the AeroSpace leader (hold -> cmd+ctrl+alt, tap -> escape)",
+  "manipulators": [
     {
-        "type": "basic",
-        "from": {
-            "key_code": RENAMED.get(key, key),
-            # shift is optional, not mandatory, so one manipulator covers both
-            # fn+h and fn+shift+h — and passes the shift through to AeroSpace,
-            # which is what tells `move` from `focus`.
-            "modifiers": {"mandatory": ["fn"], "optional": ["left_shift", "right_shift"]},
-        },
-        "to": [
-            {
-                "key_code": RENAMED.get(key, key),
-                "modifiers": ["left_command", "left_control", "left_option"],
-            }
-        ],
+      "type": "basic",
+      "from": {
+        "key_code": "caps_lock",
+        "modifiers": {
+          "optional": [
+            "any"
+          ]
+        }
+      },
+      "to": [
+        {
+          "key_code": "left_command",
+          "modifiers": [
+            "left_control",
+            "left_option"
+          ],
+          "lazy": true
+        }
+      ],
+      "to_if_alone": [
+        {
+          "key_code": "escape"
+        }
+      ],
+      "parameters": {
+        "basic.to_if_alone_timeout_milliseconds": 250
+      }
     }
-    for key in keys
-]
-
-rule = {
-    "description": f"{marker} fn is the AeroSpace leader (fn+key -> cmd+ctrl+alt+key, {len(keys)} keys)",
-    "manipulators": manipulators,
+  ]
 }
-
-with open(out_path, "w") as f:
-    json.dump(rule, f, indent=2)
-    f.write("\n")
-PY
-
-key_count="$(python3 -c "
-import json, sys
-print(len(json.load(open('$rule'))['manipulators']))
-")"
+JSON
 
 # --- is it already installed? ------------------------------------------------
-# Two places have to agree: the asset file, which is what the Karabiner UI
-# lists, and the rule inside the active profile, which is what actually runs.
-# Only the second one changes behaviour — the first is there so the rule can be
-# seen, and removed, the way every other Karabiner rule can.
+# Three things have to agree: the asset file, which is what the Karabiner UI
+# lists; the rule inside the active profile, which is what actually runs; and
+# the absence of the fn-era asset this module used to write. Only the second
+# one changes behaviour — the first is there so the rule can be seen, and
+# removed, the way every other Karabiner rule can.
 current=no
-if [ -f "$ASSET" ] && cmp -s "$rule" "$ASSET" && [ -f "$CONFIG" ]; then
+if [ -f "$ASSET" ] && cmp -s "$rule" "$ASSET" && [ ! -e "$LEGACY_ASSET" ] && [ -f "$CONFIG" ]; then
   python3 - "$CONFIG" "$rule" "$MARKER" <<'PY' && current=yes
 import json, sys
 
@@ -191,18 +204,21 @@ PY
 fi
 
 if [ "$current" = yes ]; then
-  printf '    %-24s up to date, %s keys\n' "fn leader" "$key_count"
+  printf '    %-24s up to date\n' "caps lock leader"
+  report_liveness
   exit 0
 fi
 
 if [ "$mode" = check ]; then
-  printf '    %-24s would be installed, %s keys\n' "fn leader" "$key_count"
+  printf '    %-24s would be installed\n' "caps lock leader"
+  report_liveness
   exit 0
 fi
 
 # --- install ----------------------------------------------------------------
 mkdir -p "$(dirname "$ASSET")"
 cp "$rule" "$ASSET"
+rm -f "$LEGACY_ASSET"
 
 if [ -f "$CONFIG" ]; then
   cp "$CONFIG" "$CONFIG.$BACKUP_SUFFIX"
@@ -232,7 +248,8 @@ for profile in profiles:
     complex_mods = profile.setdefault("complex_modifications", {})
     rules = complex_mods.setdefault("rules", [])
     # Drop whatever this repo put here before — by marker, so a rule the user
-    # added themselves is never touched — then add the current one.
+    # added themselves is never touched, and the old fn rule goes with it —
+    # then add the current one.
     rules[:] = [r for r in rules if not str(r.get("description", "")).startswith(marker)]
     rules.append(rule)
 
@@ -241,19 +258,8 @@ with open(config_path, "w") as f:
     f.write("\n")
 PY
 
-printf '    %-24s installed, %s keys\n' "fn leader" "$key_count"
+printf '    %-24s installed\n' "caps lock leader"
 
 # Karabiner watches this file and reloads on its own, so there is nothing to
-# restart — but it only sees the keyboard at all once macOS has been told to
-# let it, and that is a dialog no script can click.
-if ! pgrep -qf "$APP/Contents/MacOS" 2>/dev/null; then
-  warn "Karabiner is not running yet — open it once:"
-  cat <<EOM
-    open -a Karabiner-Elements
-
-    It will ask for a driver extension and Input Monitoring. Both are required:
-    without them the rule is installed and inert.
-
-    Not wanted on this machine?  touch $OPT_OUT
-EOM
-fi
+# restart — only, possibly, something to permit.
+report_liveness

@@ -112,15 +112,19 @@ gaps.outer.right =      0
     # - Arrows.         left, down, up, right
 
     # All possible modifiers: cmd, alt, ctrl, shift — and that list is the
-    # whole reason these bindings look the way they do. fn is not on it and
-    # never reaches AeroSpace at all, so Karabiner maps fn to cmd+ctrl+alt and
-    # every binding below is written in those three. Pressing fn is pressing
-    # all three at once; fn+shift is the second level, for moving rather than
-    # focusing. See karabiner/ in this repo.
+    # whole reason these bindings look the way they do. The leader is caps
+    # lock, which is not a modifier and never reaches AeroSpace as one, so
+    # Karabiner turns a held caps lock into cmd+ctrl+alt and every binding
+    # below is written in those three. Holding caps lock is holding all three
+    # at once; caps+shift is the second level, for moving rather than
+    # focusing. Tapped on its own it is escape. See karabiner/ in this repo.
     #
-    # The leader is fn rather than plain alt because this is a Swiss German
-    # layout, where the option layer is not spare room — it is where [ ] | { }
-    # # @ ~ are typed. alt-5 through alt-9 alone cost all five brackets.
+    # The leader is caps lock rather than plain alt because this is a Swiss
+    # German layout, where the option layer is not spare room — it is where
+    # [ ] | { } # @ ~ are typed. alt-5 through alt-9 alone cost all five
+    # brackets. And caps lock rather than fn because fn sits bottom left on the
+    # built-in keyboard and bottom right on the external one; caps lock is in
+    # the same place on both.
 
     # All possible commands: https://nikitabobko.github.io/AeroSpace/commands
 

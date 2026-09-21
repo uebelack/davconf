@@ -80,7 +80,7 @@ brew trust --tap arthur-ficial/tap
 | `jenv/`     | Registers every installed JDK with jenv                    |
 | `zsh/`      | oh-my-zsh, spaceship prompt, plugins, `.zshrc` + `.zprofile` |
 | `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      |
-| `karabiner/`| Makes fn AeroSpace's leader key, which AeroSpace cannot     |
+| `karabiner/`| Makes caps lock AeroSpace's leader, which AeroSpace cannot  |
 | `aerospace/`| The AeroSpace window manager config, linked into `$HOME`    |
 | `chrome/`   | The Synthwave '85 Chrome theme, and how to load it          |
 | `vscode/`   | The Synthwave '85 theme for VS Code and Cursor              |
@@ -542,13 +542,14 @@ registers that login item when it starts, not when it reloads its config, so
 turning it on takes effect from the next launch — `killall AeroSpace && open -a
 AeroSpace` if you do not want to wait for a reboot.
 
-The leader key is fn, which reaches the config as `ctrl-alt-cmd-` because
-that is what `karabiner/` turns it into. `fn+h` focuses left, `fn+shift+h`
-moves left, `fn+1` goes to workspace 1, `fn+shift+1` sends the window there.
+The leader key is caps lock, which reaches the config as `ctrl-alt-cmd-`
+because that is what `karabiner/` turns it into. `caps+h` focuses left,
+`caps+shift+h` moves left, `caps+1` goes to workspace 1, `caps+shift+1` sends
+the window there. Tapped on its own, caps lock is escape.
 
-It is fn rather than plain alt because this is a Swiss German layout, where the
-option layer is not spare room — it is where the programming characters are
-typed:
+It is caps lock rather than plain alt because this is a Swiss German layout,
+where the option layer is not spare room — it is where the programming
+characters are typed:
 
 | binding | costs | | binding | costs |
 |---|---|---|---|---|
@@ -574,45 +575,48 @@ symlink.
 
 ### karabiner
 
-`karabiner/update.sh` installs one Karabiner-Elements rule: fn plus a key
-becomes cmd+ctrl+alt plus that key, which is what makes fn usable as
-AeroSpace's leader.
+`karabiner/update.sh` installs one Karabiner-Elements rule: caps lock held is
+cmd+ctrl+alt, which is what makes it usable as AeroSpace's leader. Tapped on
+its own it is escape.
 
 ```sh
 ./karabiner/update.sh          # install the rule where out of date
 ./karabiner/update.sh --check  # report what would change, change nothing
 ```
 
-AeroSpace's modifiers are cmd, alt, ctrl and shift, and fn is not one of them.
-It is not a binding AeroSpace fails to honour either — it is a line it refuses
-to parse:
+AeroSpace's modifiers are cmd, alt, ctrl and shift, and caps lock is not one of
+them. It is not a binding AeroSpace fails to honour either — it is a line it
+refuses to parse:
 
 ```
-[ERROR] mode.main.binding.fn-alt-h: Can't parse modifiers in 'fn-alt-h' binding
+[ERROR] mode.main.binding.caps-h: Can't parse modifiers in 'caps-h' binding
 ```
 
-macOS handles fn below the level any hotkey registration can see, so no config
-change reaches it. Karabiner sits lower still, at the event tap, which is why
-it can do what the config cannot. fn becomes cmd+ctrl+alt — three modifiers
-AeroSpace does understand, in a combination nothing else on the system claims.
-Not the full hyper of cmd+ctrl+alt+shift, deliberately: that would swallow
-shift, and shift is what tells `move` from `focus`. With three, fn+shift is
-still a second level.
+macOS hands caps lock out below the level any hotkey registration can see, so
+no config change reaches it. Karabiner sits lower still, at the event tap,
+which is why it can do what the config cannot. Held, caps lock becomes
+cmd+ctrl+alt — three modifiers AeroSpace does understand, in a combination
+nothing else on the system claims. Not the full hyper of cmd+ctrl+alt+shift,
+deliberately: that would swallow shift, and shift is what tells `move` from
+`focus`. With three, caps+shift is still a second level.
 
-What the rule does *not* do is remap the fn key itself. That is the obvious way
-to write it, and it quietly costs the rest of the key — fn+arrows for home and
-end, fn+delete for forward delete, fn+F1 for a real F-key — because Karabiner
-would be swallowing fn before macOS ever saw it. Instead the rule claims only
-fn together with the keys AeroSpace actually binds, so every other fn
-combination is untouched, and a bare fn tap still does whatever System Settings
-says it does.
+Caps lock rather than fn, which is what this was before, because fn is not in
+the same place twice: bottom left on the built-in keyboard, bottom right on the
+Logitech MX Keys S — the hand already on `hjkl` — and a Logitech fn is handled
+partly in firmware, so it does not reliably reach Karabiner at all. Caps lock
+is on every keyboard, in one place, under the left little finger next to `a`.
 
-Which keys those are is read out of `aerospace/aerospace.toml` rather than
-repeated in the module: every `ctrl-alt-cmd-` binding, shifted or not, becomes
-one manipulator. Bind a new key over there, run this, and the rule grows to
-match — the two cannot drift apart. Shift is `optional` rather than `mandatory`
-in each manipulator, which is what lets one rule cover both `fn+h` and
-`fn+shift+h` and still pass the shift through.
+Because caps lock has no second function worth keeping — unlike fn, where
+remapping the key costs fn+arrows for home and end, fn+delete for forward
+delete, fn+F1 for a real F-key — the rule can claim the whole key in one
+manipulator, rather than enumerating the keys AeroSpace binds and claiming only
+those. Shift is `optional: any` rather than mandatory, which is what lets that
+one manipulator cover both `caps+h` and `caps+shift+h` and still pass the shift
+through. The three modifiers are `lazy`, so holding caps lock and then thinking
+better of it emits nothing at all, and the tap that becomes escape is given
+250ms rather than Karabiner's default second — long enough for a deliberate
+tap, short enough that a held leader ending in nothing does not turn into a
+stray escape a beat later.
 
 The rule is written to two places, because they do different jobs. The asset
 under `~/.config/karabiner/assets/complex_modifications/` is what makes it
