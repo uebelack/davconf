@@ -641,14 +641,30 @@ stacked twice and a rule you added yourself is never touched.
 The module sets one thing that has nothing to do with the leader key.
 Karabiner does not pass the real keyboard through — it grabs it and replays it
 on a virtual one, and that virtual keyboard declares what kind of keyboard it
-is. By default it declares ANSI. The key left of `1` and the key left of `Y`
-are not the same keys on ANSI and ISO boards, so macOS swaps them to put an
-ISO board right, and doing that to a board that has just called itself ANSI
-puts it wrong: on a Swiss German layout `§` and `<` come out as each other.
+is. Get that declaration wrong and macOS swaps the key left of `1` with the key
+left of `Y`: on a Swiss German layout, `§` and `<` come out as each other.
+Nothing in the rules causes it and nothing in the rules can fix it. The lever is
+`virtual_hid_keyboard.keyboard_type_v2`, set in every profile.
 
-Nothing in the rules causes it and nothing in the rules can fix it. The fix is
-`virtual_hid_keyboard.keyboard_type_v2`, set to `iso` in every profile, which
-is a thing to know before spending an evening on it. Only that one key is
+The value that keeps them the right way round is `ansi`, on a keyboard that is
+physically ISO. That reads like a mistake, so for the record it was measured
+rather than reasoned — setting each value in turn and reading back what the
+virtual keyboard reports to the system:
+
+```
+ansi   -> alt_handler_id 46      # keys correct
+iso    -> alt_handler_id 47      # § and < swapped
+jis    -> alt_handler_id 48
+```
+
+The likely reason, unverified and worth no more trust than that, is that
+Karabiner already applies the ISO swap itself on the way in, so a virtual
+keyboard calling itself ISO has macOS apply it a second time — which is no swap
+at all.
+
+It is pinned here rather than left alone because it is per-machine state in
+`karabiner.json` that the Karabiner UI will happily change, and two machines
+quietly disagreeing about it is exactly how this surfaced. Only that one key is
 written, so whatever else Karabiner keeps in there survives, and `--check`
 reports it as its own line rather than folding it into the rule.
 

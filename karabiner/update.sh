@@ -31,13 +31,23 @@
 #
 # The module owns one other thing, for a reason that only shows up once
 # Karabiner is running. Karabiner does not pass the real keyboard through; it
-# grabs it and replays it on a virtual one, and that virtual keyboard has to
-# declare what kind of keyboard it is. It declares ANSI by default. On an ANSI
-# board the key left of 1 and the key left of Y are not the ones an ISO board
-# has there, so macOS helpfully swaps them back — and on a Swiss German board
-# that means § and < come out as each other. Nothing in the rules causes it and
-# nothing in the rules can fix it: the fix is telling the virtual keyboard it
-# is ISO, which is what keyboard_type_v2 below does.
+# grabs it and replays it on a virtual one, and that virtual keyboard declares
+# what kind of keyboard it is. Get that wrong and macOS swaps the key left of 1
+# with the key left of Y — on a Swiss German board, § and < come out as each
+# other. Nothing in the rules causes it and nothing in the rules can fix it.
+#
+# The value that keeps them the right way round is ANSI, on a keyboard that is
+# physically ISO. That reads like a mistake, so: it was measured, not reasoned.
+# Setting each value in turn and reading back what the virtual keyboard reports
+# to the system gives ansi -> 46, iso -> 47, jis -> 48, and 46 is the one where
+# the keys are right. The likely reason — not verified, so do not trust it
+# further than it deserves — is that Karabiner already applies the ISO swap
+# itself on the way in, so a virtual keyboard calling itself ISO gets macOS to
+# apply it a second time, which is no swap at all.
+#
+# It is set here rather than left alone because the value is per-machine state
+# in karabiner.json that the Karabiner UI will happily change, and two machines
+# disagreeing about it is exactly how this was found in the first place.
 #
 # Create ~/.config/davconf/no-karabiner on a machine that does not want it.
 
@@ -53,8 +63,8 @@ APP="Karabiner-Elements.app"
 # Every rule this repo owns starts with this, which is how a re-run finds its
 # own work to replace instead of stacking another copy beside it.
 MARKER="davconf:"
-# Every keyboard this repo meets is a Swiss German one, and those are ISO.
-KEYBOARD_TYPE="iso"
+# ansi, counter-intuitively, on Swiss German ISO keyboards. See the note above.
+KEYBOARD_TYPE="ansi"
 GUIDANCE_LOG="$HOME/.local/share/karabiner/log/console_user_server.log"
 OPT_OUT="$HOME/.config/davconf/no-karabiner"
 BACKUP_SUFFIX="$(date +%Y%m%d%H%M%S).bak"
