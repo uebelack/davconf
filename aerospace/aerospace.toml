@@ -117,7 +117,8 @@ gaps.outer.right =      0
     # Karabiner turns a held caps lock into cmd+ctrl+alt and every binding
     # below is written in those three. Holding caps lock is holding all three
     # at once; caps+shift is the second level, for moving rather than
-    # focusing. Tapped on its own it is escape. See karabiner/ in this repo.
+    # focusing. Tapped rather than held it is still caps lock, which on this
+    # layout is the only way to type Ä Ö Ü. See karabiner/ in this repo.
     #
     # The leader is caps lock rather than plain alt because this is a Swiss
     # German layout, where the option layer is not spare room — it is where

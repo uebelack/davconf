@@ -545,7 +545,7 @@ AeroSpace` if you do not want to wait for a reboot.
 The leader key is caps lock, which reaches the config as `ctrl-alt-cmd-`
 because that is what `karabiner/` turns it into. `caps+h` focuses left,
 `caps+shift+h` moves left, `caps+1` goes to workspace 1, `caps+shift+1` sends
-the window there. Tapped on its own, caps lock is escape.
+the window there. Held, that is — tapped, caps lock is still caps lock.
 
 It is caps lock rather than plain alt because this is a Swiss German layout,
 where the option layer is not spare room — it is where the programming
@@ -576,8 +576,8 @@ symlink.
 ### karabiner
 
 `karabiner/update.sh` installs one Karabiner-Elements rule: caps lock held is
-cmd+ctrl+alt, which is what makes it usable as AeroSpace's leader. Tapped on
-its own it is escape.
+cmd+ctrl+alt, which is what makes it usable as AeroSpace's leader. Tapped, it
+is still caps lock.
 
 ```sh
 ./karabiner/update.sh          # install the rule where out of date
@@ -606,17 +606,27 @@ Logitech MX Keys S — the hand already on `hjkl` — and a Logitech fn is handl
 partly in firmware, so it does not reliably reach Karabiner at all. Caps lock
 is on every keyboard, in one place, under the left little finger next to `a`.
 
-Because caps lock has no second function worth keeping — unlike fn, where
+Because caps lock has no *second* function worth keeping — unlike fn, where
 remapping the key costs fn+arrows for home and end, fn+delete for forward
 delete, fn+F1 for a real F-key — the rule can claim the whole key in one
 manipulator, rather than enumerating the keys AeroSpace binds and claiming only
 those. Shift is `optional: any` rather than mandatory, which is what lets that
 one manipulator cover both `caps+h` and `caps+shift+h` and still pass the shift
-through. The three modifiers are `lazy`, so holding caps lock and then thinking
-better of it emits nothing at all, and the tap that becomes escape is given
-250ms rather than Karabiner's default second — long enough for a deliberate
-tap, short enough that a held leader ending in nothing does not turn into a
-stray escape a beat later.
+through.
+
+It does keep the first function: tapped rather than held, caps lock still
+toggles caps lock. On a Swiss German layout that is not a courtesy. Shift on
+the umlaut keys is taken — `shift+ä` is `à`, `shift+ö` is `é`, `shift+ü` is
+`è` — so caps lock is the only way to type Ä Ö Ü, and a leader that swallowed
+it would cost the same kind of thing the alt layer would. Hold for the leader,
+tap for the lock, which is what the key was always for.
+
+The three modifiers are `lazy`, so holding caps lock and then thinking better
+of it emits nothing at all. The tap gets 250ms rather than Karabiner's default
+second — long enough for a deliberate tap, short enough that a held leader
+ending in nothing does not toggle the lock a beat later — and 100ms of
+`hold_down_milliseconds`, because macOS ignores a caps_lock press that is over
+as fast as a synthesised one and does nothing at all.
 
 The rule is written to two places, because they do different jobs. The asset
 under `~/.config/karabiner/assets/complex_modifications/` is what makes it

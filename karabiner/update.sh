@@ -23,8 +23,11 @@
 # every keyboard, in the same spot, left little finger, next to a.
 #
 # Unlike fn, caps lock has no second function worth keeping, so the rule can
-# claim the whole key rather than enumerating the keys AeroSpace binds. Tapped
-# on its own it sends escape, which is the more useful thing to have there.
+# claim the whole key rather than enumerating the keys AeroSpace binds. It does
+# keep the first one: tapped on its own, caps lock is still caps lock. On a
+# Swiss German layout that is not a courtesy — shift on the umlaut keys gives
+# à é è, so caps lock is the only way to type Ä Ö Ü. Hold for the leader, tap
+# for the lock, which is what the key was always for.
 #
 # Create ~/.config/davconf/no-karabiner on a machine that does not want it.
 
@@ -129,12 +132,16 @@ fi
 # `lazy` holds the three modifiers back until a key actually follows, so
 # holding caps and then thinking better of it emits nothing at all. 250ms
 # rather than Karabiner's default second for the tap, so a held leader that
-# ends in nothing does not turn into a stray escape a beat later.
+# ends in nothing does not toggle the lock a beat later.
+#
+# The tap needs `hold_down_milliseconds`: macOS ignores a caps_lock press that
+# is over as fast as a synthesised one, and silently does nothing. 100ms is
+# long enough for it to count, short enough not to be felt.
 rule="$(mktemp -d)/rule.json"
 
 cat > "$rule" <<'JSON'
 {
-  "description": "davconf: caps lock is the AeroSpace leader (hold -> cmd+ctrl+alt, tap -> escape)",
+  "description": "davconf: caps lock is the AeroSpace leader (hold -> cmd+ctrl+alt, tap -> caps lock)",
   "manipulators": [
     {
       "type": "basic",
@@ -158,7 +165,8 @@ cat > "$rule" <<'JSON'
       ],
       "to_if_alone": [
         {
-          "key_code": "escape"
+          "key_code": "caps_lock",
+          "hold_down_milliseconds": 100
         }
       ],
       "parameters": {
