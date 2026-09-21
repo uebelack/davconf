@@ -29,6 +29,16 @@
 # à é è, so caps lock is the only way to type Ä Ö Ü. Hold for the leader, tap
 # for the lock, which is what the key was always for.
 #
+# The module owns one other thing, for a reason that only shows up once
+# Karabiner is running. Karabiner does not pass the real keyboard through; it
+# grabs it and replays it on a virtual one, and that virtual keyboard has to
+# declare what kind of keyboard it is. It declares ANSI by default. On an ANSI
+# board the key left of 1 and the key left of Y are not the ones an ISO board
+# has there, so macOS helpfully swaps them back — and on a Swiss German board
+# that means § and < come out as each other. Nothing in the rules causes it and
+# nothing in the rules can fix it: the fix is telling the virtual keyboard it
+# is ISO, which is what keyboard_type_v2 below does.
+#
 # Create ~/.config/davconf/no-karabiner on a machine that does not want it.
 
 set -euo pipefail
@@ -43,6 +53,8 @@ APP="Karabiner-Elements.app"
 # Every rule this repo owns starts with this, which is how a re-run finds its
 # own work to replace instead of stacking another copy beside it.
 MARKER="davconf:"
+# Every keyboard this repo meets is a Swiss German one, and those are ISO.
+KEYBOARD_TYPE="iso"
 GUIDANCE_LOG="$HOME/.local/share/karabiner/log/console_user_server.log"
 OPT_OUT="$HOME/.config/davconf/no-karabiner"
 BACKUP_SUFFIX="$(date +%Y%m%d%H%M%S).bak"
@@ -178,17 +190,18 @@ cat > "$rule" <<'JSON'
 JSON
 
 # --- is it already installed? ------------------------------------------------
-# Three things have to agree: the asset file, which is what the Karabiner UI
-# lists; the rule inside the active profile, which is what actually runs; and
-# the absence of the fn-era asset this module used to write. Only the second
-# one changes behaviour — the first is there so the rule can be seen, and
-# removed, the way every other Karabiner rule can.
+# Four things have to agree: the asset file, which is what the Karabiner UI
+# lists; the rule inside the active profile, which is what actually runs; the
+# keyboard type, which is what keeps § and < the right way round; and the
+# absence of the fn-era asset this module used to write. Only the middle two
+# change behaviour — the asset is there so the rule can be seen, and removed,
+# the way every other Karabiner rule can.
 current=no
 if [ -f "$ASSET" ] && cmp -s "$rule" "$ASSET" && [ ! -e "$LEGACY_ASSET" ] && [ -f "$CONFIG" ]; then
-  python3 - "$CONFIG" "$rule" "$MARKER" <<'PY' && current=yes
+  python3 - "$CONFIG" "$rule" "$MARKER" "$KEYBOARD_TYPE" <<'PY' && current=yes
 import json, sys
 
-config_path, rule_path, marker = sys.argv[1], sys.argv[2], sys.argv[3]
+config_path, rule_path, marker, keyboard_type = sys.argv[1:5]
 try:
     with open(config_path) as f:
         config = json.load(f)
@@ -207,18 +220,22 @@ for profile in profiles:
     rules = profile.get("complex_modifications", {}).get("rules", [])
     if not any(r == rule for r in rules):
         sys.exit(1)
+    if profile.get("virtual_hid_keyboard", {}).get("keyboard_type_v2") != keyboard_type:
+        sys.exit(1)
 sys.exit(0)
 PY
 fi
 
 if [ "$current" = yes ]; then
   printf '    %-24s up to date\n' "caps lock leader"
+  printf '    %-24s up to date, %s\n' "keyboard type" "$KEYBOARD_TYPE"
   report_liveness
   exit 0
 fi
 
 if [ "$mode" = check ]; then
   printf '    %-24s would be installed\n' "caps lock leader"
+  printf '    %-24s would be set to %s\n' "keyboard type" "$KEYBOARD_TYPE"
   report_liveness
   exit 0
 fi
@@ -232,10 +249,10 @@ if [ -f "$CONFIG" ]; then
   cp "$CONFIG" "$CONFIG.$BACKUP_SUFFIX"
 fi
 
-python3 - "$CONFIG" "$rule" "$MARKER" <<'PY'
+python3 - "$CONFIG" "$rule" "$MARKER" "$KEYBOARD_TYPE" <<'PY'
 import json, os, sys
 
-config_path, rule_path, marker = sys.argv[1], sys.argv[2], sys.argv[3]
+config_path, rule_path, marker, keyboard_type = sys.argv[1:5]
 
 with open(rule_path) as f:
     rule = json.load(f)
@@ -261,12 +278,18 @@ for profile in profiles:
     rules[:] = [r for r in rules if not str(r.get("description", "")).startswith(marker)]
     rules.append(rule)
 
+    # Unrelated to the leader, and not optional: left at its ANSI default the
+    # virtual keyboard makes macOS swap § and <. Only this key is set, so
+    # anything else Karabiner keeps in here survives.
+    profile.setdefault("virtual_hid_keyboard", {})["keyboard_type_v2"] = keyboard_type
+
 with open(config_path, "w") as f:
     json.dump(config, f, indent=4)
     f.write("\n")
 PY
 
 printf '    %-24s installed\n' "caps lock leader"
+printf '    %-24s set to %s\n' "keyboard type" "$KEYBOARD_TYPE"
 
 # Karabiner watches this file and reloads on its own, so there is nothing to
 # restart — only, possibly, something to permit.

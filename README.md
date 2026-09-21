@@ -577,7 +577,8 @@ symlink.
 
 `karabiner/update.sh` installs one Karabiner-Elements rule: caps lock held is
 cmd+ctrl+alt, which is what makes it usable as AeroSpace's leader. Tapped, it
-is still caps lock.
+is still caps lock. It also sets the virtual keyboard to ISO, which is
+unrelated to the leader and not optional — see below.
 
 ```sh
 ./karabiner/update.sh          # install the rule where out of date
@@ -636,6 +637,20 @@ profile, not just the selected one, so switching profile does not silently
 switch the leader key off. A re-run replaces what this repo put there before,
 matched on a `davconf:` prefix in the description, so its own rule is never
 stacked twice and a rule you added yourself is never touched.
+
+The module sets one thing that has nothing to do with the leader key.
+Karabiner does not pass the real keyboard through — it grabs it and replays it
+on a virtual one, and that virtual keyboard declares what kind of keyboard it
+is. By default it declares ANSI. The key left of `1` and the key left of `Y`
+are not the same keys on ANSI and ISO boards, so macOS swaps them to put an
+ISO board right, and doing that to a board that has just called itself ANSI
+puts it wrong: on a Swiss German layout `§` and `<` come out as each other.
+
+Nothing in the rules causes it and nothing in the rules can fix it. The fix is
+`virtual_hid_keyboard.keyboard_type_v2`, set to `iso` in every profile, which
+is a thing to know before spending an evening on it. Only that one key is
+written, so whatever else Karabiner keeps in there survives, and `--check`
+reports it as its own line rather than folding it into the rule.
 
 Karabiner reloads on its own when the file changes, so nothing needs
 restarting. What no script can do is grant it a driver extension and Input
