@@ -294,14 +294,14 @@
       "settings": { "foreground": "#ff8b39" }
     },
     {
-      "name": "Keywords and control flow — coral, like anything that decides",
+      "name": "Keywords and control flow — magenta, like anything that decides",
       "scope": ["keyword", "keyword.control", "keyword.other", "storage", "storage.type", "storage.modifier", "meta.diff.header"],
-      "settings": { "foreground": "#fe4450" }
+      "settings": { "foreground": "#ff7edb" }
     },
     {
-      "name": "Operators and punctuation — structure, so magenta",
+      "name": "Operators and punctuation — structure, so coral",
       "scope": ["keyword.operator", "punctuation", "punctuation.separator", "punctuation.terminator", "meta.brace"],
-      "settings": { "foreground": "#ff7edb" }
+      "settings": { "foreground": "#fe4450" }
     },
     {
       "name": "Functions and methods — cyan, what you call",
@@ -331,7 +331,7 @@
     {
       "name": "Tags",
       "scope": ["entity.name.tag", "punctuation.definition.tag"],
-      "settings": { "foreground": "#ff7edb" }
+      "settings": { "foreground": "#fe4450" }
     },
     {
       "name": "Tag attributes",
@@ -351,7 +351,7 @@
     {
       "name": "Markdown headings",
       "scope": ["markup.heading", "entity.name.section"],
-      "settings": { "foreground": "#ff7edb", "fontStyle": "bold" }
+      "settings": { "foreground": "#fe4450", "fontStyle": "bold" }
     },
     {
       "name": "Markdown emphasis",

@@ -96,7 +96,7 @@
     </option>
     <option name="DEFAULT_KEYWORD">
       <value>
-        <option name="FOREGROUND" value="fe4450" />
+        <option name="FOREGROUND" value="ff7edb" />
       </value>
     </option>
     <option name="DEFAULT_STRING">
@@ -134,37 +134,37 @@
     </option>
     <option name="DEFAULT_OPERATION_SIGN">
       <value>
-        <option name="FOREGROUND" value="ff7edb" />
+        <option name="FOREGROUND" value="fe4450" />
       </value>
     </option>
     <option name="DEFAULT_BRACES">
       <value>
-        <option name="FOREGROUND" value="ff7edb" />
+        <option name="FOREGROUND" value="fe4450" />
       </value>
     </option>
     <option name="DEFAULT_BRACKETS">
       <value>
-        <option name="FOREGROUND" value="ff7edb" />
+        <option name="FOREGROUND" value="fe4450" />
       </value>
     </option>
     <option name="DEFAULT_PARENTHS">
       <value>
-        <option name="FOREGROUND" value="ff7edb" />
+        <option name="FOREGROUND" value="fe4450" />
       </value>
     </option>
     <option name="DEFAULT_COMMA">
       <value>
-        <option name="FOREGROUND" value="ff7edb" />
+        <option name="FOREGROUND" value="fe4450" />
       </value>
     </option>
     <option name="DEFAULT_DOT">
       <value>
-        <option name="FOREGROUND" value="ff7edb" />
+        <option name="FOREGROUND" value="fe4450" />
       </value>
     </option>
     <option name="DEFAULT_SEMICOLON">
       <value>
-        <option name="FOREGROUND" value="ff7edb" />
+        <option name="FOREGROUND" value="fe4450" />
       </value>
     </option>
     <option name="DEFAULT_IDENTIFIER">
@@ -257,7 +257,7 @@
     </option>
     <option name="DEFAULT_TAG">
       <value>
-        <option name="FOREGROUND" value="ff7edb" />
+        <option name="FOREGROUND" value="fe4450" />
       </value>
     </option>
     <option name="DEFAULT_ATTRIBUTE">
