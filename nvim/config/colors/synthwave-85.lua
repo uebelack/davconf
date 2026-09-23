@@ -475,6 +475,52 @@ local hl = {
   TelescopeMatching       = { fg = p.cyan, bold = true },
 
   ---------------------------------------------------------------------------
+  -- neo-tree. The sidebar sits on the sunk background, the same ground
+  -- Telescope's preview pane uses, so the editor stays the lit surface and
+  -- the chrome around it recedes.
+  ---------------------------------------------------------------------------
+  NeoTreeNormal       = { fg = p.muted, bg = p.deep },
+  NeoTreeNormalNC     = { fg = p.faint, bg = p.deep },
+  NeoTreeEndOfBuffer  = { fg = p.deep, bg = p.deep },
+  NeoTreeWinSeparator = { fg = p.line, bg = p.deep },
+  NeoTreeCursorLine   = { bg = wash.pick },
+  NeoTreeFloatBorder  = { fg = p.border, bg = p.float },
+  NeoTreeFloatTitle   = { fg = p.magenta, bg = p.float, bold = true },
+  NeoTreeTitleBar     = { fg = p.bg, bg = p.hotpink, bold = true },
+
+  -- The project root is the one thing in the pane that is not a choice, so it
+  -- gets the heading treatment rather than another file colour.
+  NeoTreeRootName      = { fg = p.magenta, bold = true },
+  NeoTreeDirectoryName = { fg = p.cyan },
+  NeoTreeDirectoryIcon = { fg = p.cyan },
+  NeoTreeFileName      = { fg = p.muted },
+  NeoTreeFileIcon      = { fg = p.aqua },
+  NeoTreeFileNameOpened= { fg = p.magenta, bold = true },
+  NeoTreeSymbolicLinkTarget = { fg = p.aqua, italic = true },
+  NeoTreeIndentMarker  = { fg = p.line },
+  NeoTreeExpander      = { fg = p.faint },
+  NeoTreeDimText       = { fg = p.faint },
+  NeoTreeMessage       = { fg = p.faint, italic = true },
+  NeoTreeModified      = { fg = p.gold },
+  NeoTreeBufferNumber  = { fg = p.orange },
+  NeoTreeFilterTerm    = { fg = p.cyan, bold = true },
+
+  -- Git status, same three colours the diff groups use.
+  NeoTreeGitAdded     = { fg = p.green },
+  NeoTreeGitModified  = { fg = p.gold },
+  NeoTreeGitDeleted   = { fg = p.coral },
+  NeoTreeGitConflict  = { fg = p.coral, bold = true },
+  NeoTreeGitUntracked = { fg = p.orange },
+  NeoTreeGitIgnored   = { fg = p.faint },
+  NeoTreeGitStaged    = { fg = p.green },
+  NeoTreeGitUnstaged  = { fg = p.gold },
+
+  NeoTreeTabActive            = { fg = p.magenta, bg = p.deep, bold = true },
+  NeoTreeTabInactive          = { fg = p.faint, bg = p.shadow },
+  NeoTreeTabSeparatorActive   = { fg = p.deep, bg = p.deep },
+  NeoTreeTabSeparatorInactive = { fg = p.shadow, bg = p.shadow },
+
+  ---------------------------------------------------------------------------
   -- lazy.nvim's own window
   ---------------------------------------------------------------------------
   LazyNormal       = { fg = p.fg, bg = p.float },

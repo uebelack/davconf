@@ -470,6 +470,39 @@ extras. Telescope shells out to them; without them it falls back to `grep` and
 `find_files` is set to show dotfiles — in a config repo, hiding them hides most
 of what you are looking for — with `.git/` still excluded.
 
+#### Neo-tree
+
+The project sidebar — `<leader>e` toggles it. This is deliberately not the
+same job as Telescope: Telescope answers "where is the file I am already
+thinking of", neo-tree answers "what is in here". Reaching for the wrong one
+of those is what makes people believe they do not need a file explorer, or do
+not need a fuzzy finder.
+
+| Key           | Opens                        |
+| ------------- | ---------------------------- |
+| `<leader>e`   | Toggle the tree              |
+| `<leader>E`   | Reveal the current file in it |
+| `<leader>ge`  | Changed files (git status)   |
+| `<leader>be`  | Open buffers                 |
+
+Inside the tree, `l` opens and `h` closes a node, `s` and `v` open in a split.
+It follows the current file, so the sidebar is never showing a part of the
+project you left ten minutes ago. Dotfiles are shown for the same reason
+Telescope's `find_files` shows them — in a config repo, hiding them hides most
+of the repo — while `.git`, `.DS_Store` and `node_modules` stay hidden, since
+that is noise rather than config.
+
+netrw is switched off so it cannot open its own directory listing over the
+top. That has one consequence worth knowing: `nvim .` creates a directory
+buffer *before* anything has pressed `<leader>e`, so with nothing loaded to
+hijack it the result would be an empty buffer and no explorer. The plugin's
+`init` loads neo-tree early in exactly that case — nvim started on a
+directory — and leaves every other start lazy.
+
+Icons come from the Nerd Font in `Brewfile.common`. Ghostty is set to
+JetBrains Mono and falls back to it for glyphs it does not have, so the
+terminal font does not need changing.
+
 #### Treesitter
 
 `nvim-treesitter` is what makes Telescope's preview pane show highlighted
