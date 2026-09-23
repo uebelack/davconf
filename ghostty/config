@@ -5,9 +5,16 @@
 # Reload in-app with: Cmd+Shift+, (or restart Ghostty)
 
 # ── Theme / Colors ─────────────────────────────────────────────
-# Deep indigo midnight sky with hot-magenta foreground + neon glow
+# Deep indigo midnight sky with neon-magenta foreground + neon glow
+#
+# foreground is ff7edb, the same magenta the editors use for keywords, and not
+# the hotter f92aad it used to be. The two are both in this palette — f92aad is
+# ANSI-adjacent, ff7edb is palette 5 — but unstyled output is most of what is
+# on screen in a terminal, so whichever one lands here is the magenta the
+# console *reads* as. On f92aad that was a visibly different magenta from the
+# editors, and the weaker of the two on this background: 5.11:1 against 7.94:1.
 background = 1a1033
-foreground = f92aad
+foreground = ff7edb
 cursor-color = 00f0ff
 cursor-text = 1a1033
 selection-background = ff8b39

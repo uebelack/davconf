@@ -245,7 +245,7 @@
     "walkThrough.embeddedEditorBackground": "#150d2b",
 
     "terminal.background": "#1a1033",
-    "terminal.foreground": "#f92aad",
+    "terminal.foreground": "#ff7edb",
     "terminalCursor.foreground": "#00f0ff",
     "terminalCursor.background": "#1a1033",
     "terminal.selectionBackground": "#ff8b3955",
