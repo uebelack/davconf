@@ -50,4 +50,32 @@ require("lazy").setup({
   -- one thing that does the updating: ./update.sh.
   checker = { enabled = false },
   change_detection = { notify = false },
+
+  -- No luarocks. lazy.nvim's default is to build a private Lua 5.1 and
+  -- luarocks under ~/.local/share/nvim/lazy-rocks (via hererocks) so that a
+  -- plugin needing a rock can have one — and :checkhealth lazy reports it as
+  -- an error until that build succeeds. Nothing here needs it: checkhealth
+  -- says so itself, one line above the error. Switching it off is a whole
+  -- toolchain this repo no longer has to get built on every machine, and it
+  -- makes the health check honest again. Revisit only if a plugin added under
+  -- lua/plugins actually declares a rock dependency.
+  rocks = { enabled = false },
 })
+
+-- Synthwave '85, the palette of ghostty/config and the VS Code and JetBrains
+-- themes in this repo. It is a file in colors/, not a plugin — nothing to
+-- clone, so it cannot be the thing that is missing on a machine that has not
+-- reached the network yet.
+--
+-- termguicolors first: without it nvim renders the scheme against the
+-- terminal's own sixteen colours and the result is a muddier, differently
+-- wrong palette rather than an obvious failure. Neovim turns it on by itself
+-- where it can detect support, which is not everywhere this repo runs.
+vim.o.termguicolors = true
+
+-- pcall so a broken or missing colorscheme leaves a readable editor and one
+-- message, rather than a wall of errors on every start.
+local ok, err = pcall(vim.cmd.colorscheme, "synthwave-85")
+if not ok then
+  vim.notify("synthwave-85 colorscheme failed to load: " .. tostring(err), vim.log.levels.WARN)
+end

@@ -403,6 +403,55 @@ you do on purpose, and the commit is what carries it to the other machines.
 
 Adding a plugin is adding a file under `nvim/config/lua/plugins/` that returns
 a spec. Nothing else needs touching — `init.lua` imports the whole directory.
+An nvim that was already open when the plugin was added has registered the
+command stubs but has nothing to load behind them, and says `Plugin … is not
+installed` — restart it, or run `:Lazy install` in that session.
+
+luarocks is switched off (`rocks = { enabled = false }`). lazy.nvim's default
+is to build a private Lua 5.1 and luarocks under `~/.local/share/nvim/lazy-rocks`
+so a plugin that needs a rock can have one, and `:checkhealth lazy` reports an
+error until that build succeeds. Nothing here needs it. Turn it back on if a
+plugin added under `lua/plugins/` ever declares a rock dependency.
+
+#### The colour scheme
+
+`nvim/config/colors/synthwave-85.lua` is the same Synthwave '85 palette as
+`ghostty/config`, the prompt, the Chrome theme and the two editor themes —
+same eight backgrounds, same sixteen neons, same roles:
+
+| Colour    |           | Role                                          |
+| --------- | --------- | --------------------------------------------- |
+| cyan      | `#00f0ff` | what you call — functions, methods, links      |
+| gold      | `#fede5d` | text you wrote — strings, attribute values     |
+| magenta   | `#ff7edb` | structure and control flow — keywords, storage |
+| coral     | `#fe4450` | punctuation and operators; separately, errors  |
+| green     | `#72f1b8` | types and classes                              |
+| orange    | `#ff8b39` | literals — numbers, constants, escapes, regex  |
+| lavender  | `#d4c8ff` | variables                                      |
+| dim       | `#495495` | what you can skim past — comments, line numbers |
+
+It is a file in `colors/`, not a plugin: nothing to clone, so it cannot be the
+thing that is missing on a machine that has not reached the network yet.
+`init.lua` sets `termguicolors` before loading it — without that, nvim renders
+the scheme against the terminal's own sixteen colours and the result is a
+muddier, differently wrong palette rather than an obvious failure.
+
+**Keep it in step with the other themes.** Magenta and coral were swapped once
+already (keywords used to be coral, punctuation magenta). If this file ever
+disagrees with `vscode/theme` or `intellij/theme` about which is which, they
+are the ones that moved and this is the one to fix.
+
+The VS Code theme writes its washes as eight-digit hex — `#ff7edb33` is magenta
+at 20% over whatever is behind it. Neovim highlights have no alpha channel, so
+the file mixes those down with a small `blend()` helper rather than pasting the
+results: the intent stays readable as "magenta at 20%" instead of `#482655`.
+
+Covered: editor chrome, the legacy vim syntax groups, the full treesitter
+`@`-captures, LSP semantic tokens (which win over treesitter where a server
+provides them, so they are kept in agreement), diagnostics, diff, Telescope's
+three panes, lazy.nvim's window, and `:terminal` — given the Ghostty palette
+verbatim, so a shell inside nvim inside Ghostty is the same sixteen colours the
+whole way down.
 
 #### Telescope
 
@@ -420,6 +469,29 @@ extras. Telescope shells out to them; without them it falls back to `grep` and
 `find` and feels broken on any repo big enough to want a fuzzy finder for.
 `find_files` is set to show dotfiles — in a config repo, hiding them hides most
 of what you are looking for — with `.git/` still excluded.
+
+#### Treesitter
+
+`nvim-treesitter` is what makes Telescope's preview pane show highlighted
+source rather than plain text, and it replaces Vim's regex highlighting in the
+buffer too. It is pinned to the `master` branch on purpose: the `main` branch
+is an in-progress rewrite with a different API and no `ensure_installed`, so
+an unpinned `:Lazy update` would move onto it and break the setup call.
+
+Parsers are compiled C, built on the machine into the plugin's own directory
+under `~/.local/share/nvim/lazy` — nothing lands in this repo, and they are not
+in the lockfile because they follow whatever `nvim-treesitter` commit is. The
+`ensure_installed` list covers what this repo is made of plus what every repo
+has; `auto_install` picks up anything else the first time you open one.
+
+Both run in the background after the first start, so a fresh machine has a
+short window where a file opens unhighlighted and then repaints. `:TSUpdate`
+rebuilds them by hand, and `:checkhealth nvim-treesitter` lists what is
+installed — note that it reports "no healthcheck found" until the plugin is
+loaded, since it is lazy.
+
+Building needs a C compiler. On macOS that is the Xcode command line tools,
+which `git` has already pulled in on any machine this repo has run on.
 
 Note that `$EDITOR` is still `vim`, set in `zsh/zshrc`. Neovim is the one you
 open on purpose, not the one git drops you into.
