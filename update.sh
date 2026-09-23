@@ -119,6 +119,11 @@ run_module zsh
 # next time a terminal opens.
 run_module ghostty
 
+# The editor that lives in that terminal. Links the config and installs any
+# plugin lazy.nvim is missing; it never updates the ones already there, so an
+# unattended daily run cannot move them underneath a working machine.
+run_module nvim
+
 # The leader key AeroSpace itself cannot provide: fn is not one of its four
 # modifiers and never reaches it, so Karabiner turns fn+key into cmd+ctrl+alt+key
 # below the level any hotkey sees. Runs before aerospace because the rule is
@@ -134,7 +139,7 @@ run_module aerospace
 # around, and the module goes quiet once a machine opts out or has it applied.
 run_module chrome
 
-# The editor, same palette again. Links the theme extension into VS Code and
+# The GUI editors, same palette again. Links the theme extension into VS Code and
 # Cursor; picking it is a one-off per editor, in a settings.json this repo does
 # not own.
 run_module vscode

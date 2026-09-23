@@ -80,6 +80,7 @@ brew trust --tap arthur-ficial/tap
 | `jenv/`     | Registers every installed JDK with jenv                    |
 | `zsh/`      | oh-my-zsh, spaceship prompt, plugins, `.zshrc` + `.zprofile` |
 | `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      |
+| `nvim/`     | The Neovim config — lazy.nvim and its plugins, linked into `~/.config` |
 | `karabiner/`| Makes caps lock AeroSpace's leader, which AeroSpace cannot  |
 | `aerospace/`| The AeroSpace window manager config, linked into `$HOME`    |
 | `chrome/`   | The Synthwave '85 Chrome theme, and how to load it          |
@@ -100,7 +101,7 @@ split into profiles so each machine installs only what it is actually for:
 
 | Profile   | Contents                                                   |
 | --------- | ---------------------------------------------------------- |
-| `common`  | Always applied: the bare terminal — vim, lazygit, gnupg, Ghostty, the Nerd Font |
+| `common`  | Always applied: the bare terminal — vim, Neovim (+ ripgrep, fd), lazygit, gnupg, Ghostty, the Nerd Font |
 | `dev`     | Toolchains: the version managers, Python, JVM              |
 | `cloud`   | AWS, Azure, gcloud, Terraform                              |
 | `privat`  | Machines with no install restrictions: GUI apps, general CLI tools, local AI, Spotify |
@@ -363,6 +364,65 @@ Ghostty with `cmd+shift+r` and the change applies without another run.
 both, so leave that one absent — settings split across the two are the kind of
 thing that takes an afternoon to debug. Check what Ghostty actually ended up
 with using `ghostty +show-config`.
+
+### nvim
+
+`nvim/update.sh` links `~/.config/nvim` to `nvim/config` in this repo, then
+installs any plugin that is missing. An existing real directory is backed up
+first, and a link that already points here is left alone.
+
+```sh
+./nvim/update.sh          # link the config, install missing plugins
+./nvim/update.sh --check  # report what would change, change nothing
+```
+
+Unlike `ghostty/` and `aerospace/`, this links the whole directory rather than
+a single file. A Neovim config is a tree — `init.lua` plus everything under
+`lua/` — so linking entry by entry would mean editing the script every time a
+file is added.
+
+Plugins are managed by [lazy.nvim](https://lazy.folke.io), which is not a
+Homebrew entry: `nvim/config/init.lua` clones it on first start into
+`~/.local/share/nvim/lazy`, which is also where every plugin ends up. Nothing a
+plugin manager owns lands in this repo except `nvim/config/lazy-lock.json`.
+
+**That lockfile is the point of committing this at all.** It pins the exact
+commit of every plugin, so a new machine gets the same versions as the one it
+was set up from, instead of whatever happened to be `HEAD` that day. It is
+written into the repo through the symlink, so:
+
+```sh
+nvim +Lazy      # press U to update, or :Lazy update
+                # then commit nvim/config/lazy-lock.json
+```
+
+`update.sh` runs `Lazy! install`, never `Lazy! update` — it only clones what is
+absent, at the locked commit. The daily unattended run must not be able to move
+plugins underneath a machine that was working yesterday; updating is something
+you do on purpose, and the commit is what carries it to the other machines.
+
+Adding a plugin is adding a file under `nvim/config/lua/plugins/` that returns
+a spec. Nothing else needs touching — `init.lua` imports the whole directory.
+
+#### Telescope
+
+The one plugin configured so far, under `<leader>f` with space as the leader:
+
+| Key          | Picker                    |
+| ------------ | ------------------------- |
+| `<leader>ff` | Find files                |
+| `<leader>fg` | Live grep                 |
+| `<leader>fb` | Open buffers              |
+| `<leader>fh` | Help tags                 |
+
+`ripgrep` and `fd` are in `Brewfile.common` for this and are not optional
+extras. Telescope shells out to them; without them it falls back to `grep` and
+`find` and feels broken on any repo big enough to want a fuzzy finder for.
+`find_files` is set to show dotfiles — in a config repo, hiding them hides most
+of what you are looking for — with `.git/` still excluded.
+
+Note that `$EDITOR` is still `vim`, set in `zsh/zshrc`. Neovim is the one you
+open on purpose, not the one git drops you into.
 
 ### vscode
 

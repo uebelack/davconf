@@ -9,6 +9,14 @@ brew "vim"         # $EDITOR — macOS ships one, but an old build without
 brew "gnupg"       # GPG_TTY, signed commits
 brew "lazygit"     # the `lg` alias
 
+# Neovim, configured in nvim/ in this repo. $EDITOR stays vim — this is the
+# one you open on purpose, not the one git drops you into. ripgrep and fd are
+# not optional extras: Telescope shells out to them for live_grep and
+# find_files, and silently falls back to something much slower without them.
+brew "neovim"
+brew "ripgrep"
+brew "fd"
+
 # window management — AeroSpace is not in homebrew-core, only in the author's
 # own tap. Its config lives in aerospace/aerospace.toml in this repo.
 tap "nikitabobko/tap"
