@@ -503,6 +503,45 @@ Icons come from the Nerd Font in `Brewfile.common`. Ghostty is set to
 JetBrains Mono and falls back to it for glyphs it does not have, so the
 terminal font does not need changing.
 
+#### Copilot
+
+`copilot.lua` rather than the official `github/copilot.vim`: this config has no
+completion engine for Copilot to plug into, and copilot.lua's virtual-text mode
+is the one that works standalone. Suggestions appear inline, dimmed and italic,
+as you type.
+
+| Key        | Does                        |
+| ---------- | --------------------------- |
+| `<C-y>`    | Accept the suggestion       |
+| `<C-l>`    | Accept one more word of it  |
+| `<C-Down>` | Next suggestion             |
+| `<C-Up>`   | Previous suggestion         |
+| `<C-e>`    | Dismiss                     |
+
+**These are not the upstream defaults, and the reasons are worth keeping.**
+Upstream binds alt — `<M-l>`, `<M-]>`, `<M-[>`. On the Swiss German layout this
+repo is built for, plain alt is where `[ ] | { } # @ ~` live (the same fact that
+makes `karabiner/` necessary), so an alt keymap here either types a bracket or
+eats one.
+
+The second reason is subtler. copilot.lua binds `accept`, `accept_word` and
+`dismiss` *with passthrough* — with no suggestion on screen the key still does
+what it always did, so `<C-y>` and `<C-e>` keep inserting the character above
+and below. It binds `next` and `prev` **without** passthrough: whatever those
+are given stops doing its old job entirely. That rules out `<C-k>`, which is
+digraph entry, and `<C-j>`, which is a newline. Control plus an arrow has no
+insert-mode meaning to lose.
+
+No Node needed. Current copilot.lua downloads a native `copilot-language-server`
+binary into `~/.local/share/nvim/copilot.lua/` on first load — which matters
+here, because Node comes from `nvm` in the `dev` profile and a machine without
+that profile has none.
+
+Authentication is shared, not per-editor: the token lives in
+`~/.config/github-copilot/`, so a machine where the JetBrains IDEs are already
+signed in needs nothing. On a fresh one, `:Copilot auth` once. `:Copilot status`
+says whether it is online and attached.
+
 #### Treesitter
 
 `nvim-treesitter` is what makes Telescope's preview pane show highlighted

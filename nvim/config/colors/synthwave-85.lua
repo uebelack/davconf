@@ -553,6 +553,14 @@ local hl = {
   LazyReasonStart   = { fg = p.green_br },
 
   ---------------------------------------------------------------------------
+  -- Copilot. The suggestion is text that is not in the file yet, so it reads
+  -- as the dimmest thing on screen — one step above the comment colour, and
+  -- italic, so it is never mistaken for something already written.
+  ---------------------------------------------------------------------------
+  CopilotSuggestion = { fg = p.faint, italic = true },
+  CopilotAnnotation = { fg = p.comment, italic = true },
+
+  ---------------------------------------------------------------------------
   -- :checkhealth
   ---------------------------------------------------------------------------
   healthError   = { fg = p.coral },
