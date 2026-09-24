@@ -24,13 +24,13 @@
     <option name="SELECTION_BACKGROUND" value="482655" />
     <option name="GUTTER_BACKGROUND" value="1a1033" />
     <option name="INDENT_GUIDE" value="2f2350" />
-    <option name="SELECTED_INDENT_GUIDE" value="ff7edb" />
+    <option name="SELECTED_INDENT_GUIDE" value="f92aad" />
     <option name="LINE_NUMBERS_COLOR" value="495495" />
-    <option name="LINE_NUMBER_ON_CARET_ROW_COLOR" value="ff7edb" />
+    <option name="LINE_NUMBER_ON_CARET_ROW_COLOR" value="f92aad" />
     <option name="RIGHT_MARGIN_COLOR" value="2f2350" />
     <option name="WHITESPACES" value="2f2350" />
     <option name="TEARLINE_COLOR" value="2f2350" />
-    <option name="SELECTED_TEARLINE_COLOR" value="ff7edb" />
+    <option name="SELECTED_TEARLINE_COLOR" value="f92aad" />
     <option name="ANNOTATIONS_COLOR" value="9d7fd0" />
     <option name="ADDED_LINES_COLOR" value="72f1b8" />
     <option name="MODIFIED_LINES_COLOR" value="fede5d" />
@@ -51,8 +51,8 @@
     <option name="CONSOLE_YELLOW_BRIGHT_OUTPUT" value="fff59d" />
     <option name="CONSOLE_BLUE_OUTPUT" value="03edf9" />
     <option name="CONSOLE_BLUE_BRIGHT_OUTPUT" value="6effff" />
-    <option name="CONSOLE_MAGENTA_OUTPUT" value="ff7edb" />
-    <option name="CONSOLE_MAGENTA_BRIGHT_OUTPUT" value="ffb8f3" />
+    <option name="CONSOLE_MAGENTA_OUTPUT" value="f92aad" />
+    <option name="CONSOLE_MAGENTA_BRIGHT_OUTPUT" value="fb66c4" />
     <option name="CONSOLE_CYAN_OUTPUT" value="00f0ff" />
     <option name="CONSOLE_CYAN_BRIGHT_OUTPUT" value="8bfff5" />
     <option name="CONSOLE_GRAY_OUTPUT" value="d4c8ff" />
@@ -96,7 +96,7 @@
     </option>
     <option name="DEFAULT_KEYWORD">
       <value>
-        <option name="FOREGROUND" value="ff7edb" />
+        <option name="FOREGROUND" value="f92aad" />
       </value>
     </option>
     <option name="DEFAULT_STRING">
@@ -128,7 +128,7 @@
     </option>
     <option name="DEFAULT_PREDEFINED_SYMBOL">
       <value>
-        <option name="FOREGROUND" value="f92aad" />
+        <option name="FOREGROUND" value="ff7edb" />
         <option name="FONT_TYPE" value="2" />
       </value>
     </option>
@@ -273,7 +273,7 @@
     </option>
     <option name="DEFAULT_LABEL">
       <value>
-        <option name="FOREGROUND" value="ffb8f3" />
+        <option name="FOREGROUND" value="fb66c4" />
       </value>
     </option>
     <option name="DEFAULT_TEMPLATE_LANGUAGE_COLOR">

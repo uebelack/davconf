@@ -423,7 +423,7 @@ same eight backgrounds, same sixteen neons, same roles:
 | --------- | --------- | --------------------------------------------- |
 | cyan      | `#00f0ff` | what you call — functions, methods, links      |
 | gold      | `#fede5d` | text you wrote — strings, attribute values     |
-| magenta   | `#ff7edb` | structure and control flow — keywords, storage |
+| magenta   | `#f92aad` | structure and control flow — keywords, storage |
 | coral     | `#fe4450` | punctuation and operators; separately, errors  |
 | green     | `#72f1b8` | types and classes                              |
 | orange    | `#ff8b39` | literals — numbers, constants, escapes, regex  |
@@ -441,7 +441,7 @@ already (keywords used to be coral, punctuation magenta). If this file ever
 disagrees with `vscode/theme` or `intellij/theme` about which is which, they
 are the ones that moved and this is the one to fix.
 
-The VS Code theme writes its washes as eight-digit hex — `#ff7edb33` is magenta
+The VS Code theme writes its washes as eight-digit hex — `#f92aad33` is magenta
 at 20% over whatever is behind it. Neovim highlights have no alpha channel, so
 the file mixes those down with a small `blend()` helper rather than pasting the
 results: the intent stays readable as "magenta at 20%" instead of `#482655`.

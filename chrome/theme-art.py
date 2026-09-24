@@ -26,8 +26,8 @@ OUT = Path(__file__).resolve().parent / "theme" / "images"
 # ── Palette ────────────────────────────────────────────────────────────────
 INDIGO = (0x1a, 0x10, 0x33)        # background, the midnight sky
 DEEP = (0x24, 0x1b, 0x3a)          # ANSI black, the toolbar
-PINK = (0xf9, 0x2a, 0xad)          # the foreground pink
-HOTPINK = (0xff, 0x7e, 0xdb)       # neon magenta
+PINK = (0xf9, 0x2a, 0xad)          # the main magenta — keywords, accent
+HOTPINK = (0xff, 0x7e, 0xdb)       # the lighter hot pink — this/self, fills
 CYAN = (0x00, 0xf0, 0xff)          # miami teal, the grid
 GOLD = (0xfe, 0xde, 0x5d)          # sunset gold
 ORANGE = (0xff, 0x8b, 0x39)

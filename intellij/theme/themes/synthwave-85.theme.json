@@ -4,7 +4,7 @@
   "author": "davconf",
   "editorScheme": "/themes/synthwave-85.xml",
   "colors": {
-    "accentColor": "#ff7edb",
+    "accentColor": "#f92aad",
     "secondaryAccent": "#00f0ff",
     "primaryBackground": "#241b3a",
     "secondaryBackground": "#150d2b",
@@ -21,7 +21,7 @@
     "coral": "#fe4450",
     "gold": "#fede5d",
     "lime": "#72f1b8",
-    "magenta": "#f92aad"
+    "magenta": "#ff7edb"
   },
   "ui": {
     "*": {
@@ -249,7 +249,7 @@
       "activeForeground": "secondaryAccent",
       "hoverForeground": "#8bfff5",
       "pressedForeground": "accentColor",
-      "visitedForeground": "#ffb8f3",
+      "visitedForeground": "#fb66c4",
       "secondaryForeground": "dimForeground"
     },
     "ProgressBar": {
@@ -264,14 +264,14 @@
     },
     "ScrollBar": {
       "thumbColor": "#49549566",
-      "hoverThumbColor": "#ff7edb66",
+      "hoverThumbColor": "#f92aad66",
       "trackColor": "#00000000",
       "Mac": {
         "thumbColor": "#49549566",
-        "hoverThumbColor": "#ff7edb66",
+        "hoverThumbColor": "#f92aad66",
         "Transparent": {
           "thumbColor": "#49549544",
-          "hoverThumbColor": "#ff7edb66"
+          "hoverThumbColor": "#f92aad66"
         }
       }
     },

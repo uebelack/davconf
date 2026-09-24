@@ -7,14 +7,19 @@
 # ── Theme / Colors ─────────────────────────────────────────────
 # Deep indigo midnight sky with dimmed-magenta foreground + neon glow
 #
-# foreground is d168b9: palette 5 (ff7edb, the magenta the editors use for
-# keywords) mixed 80/20 toward the background. Same hue line, so unstyled
-# output still reads as the editors' magenta, but no longer at full neon —
-# body text is most of what is on screen and ff7edb glared at 7.94:1. d168b9
-# sits at 5.48:1, still clear of the 4.5:1 floor, and leaves the undimmed
-# ff7edb to mean something when ANSI magenta actually shows up.
+# foreground is e45ab1: palette 5's hue (322°) held at 70% saturation rather
+# than 95%, with the lightness set so body text lands at 5.49:1 against the
+# background. Same hue line, so unstyled output still reads as the editors'
+# magenta — just not at full neon. Body text is most of what is on screen, and
+# f92aad across all of it is both tiring and a waste of the colour: leaving
+# palette 5 undimmed is what lets ANSI magenta mean something when it actually
+# shows up.
+#
+# That 5.49:1 is deliberate rather than incidental — it is what the older,
+# paler foreground measured too. Going from d168b9 to e45ab1 bought saturation
+# (53% → 70%), not contrast, so nothing about readability moved.
 background = 1a1033
-foreground = d168b9
+foreground = e45ab1
 cursor-color = 00f0ff
 cursor-text = 1a1033
 selection-background = ff8b39
@@ -37,8 +42,8 @@ palette = 11=#fff59d
 palette = 4=#03edf9
 palette = 12=#6effff
 # magenta / bright-magenta  (neon pink)
-palette = 5=#ff7edb
-palette = 13=#ffb8f3
+palette = 5=#f92aad
+palette = 13=#fb66c4
 # cyan / bright-cyan  (miami teal)
 palette = 6=#00f0ff
 palette = 14=#8bfff5
@@ -62,7 +67,7 @@ macos-titlebar-style = transparent
 unfocused-split-opacity = 0.55
 
 # Hot-pink neon divider bleeding between splits
-split-divider-color = ff7edb
+split-divider-color = f92aad
 
 # ── Font ───────────────────────────────────────────────────────
 # Falls back gracefully if these aren't installed.

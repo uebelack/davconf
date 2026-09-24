@@ -15,7 +15,7 @@
       "frame_incognito": [16, 10, 32],
       "frame_incognito_inactive": [13, 8, 26],
       "toolbar": [36, 27, 58],
-      "tab_text": [255, 126, 219],
+      "tab_text": [228, 90, 177],
       "tab_background_text": [157, 127, 208],
       "tab_background_text_inactive": [110, 92, 150],
       "bookmark_text": [212, 200, 255],
@@ -25,7 +25,7 @@
       "ntp_background": [26, 16, 51],
       "ntp_text": [212, 200, 255],
       "ntp_link": [0, 240, 255],
-      "ntp_header": [255, 126, 219],
+      "ntp_header": [249, 42, 173],
       "button_background": [36, 27, 58]
     },
     "tints": {

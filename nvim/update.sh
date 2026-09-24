@@ -58,6 +58,48 @@ else
   printf '    %-24s linked\n' "nvim"
 fi
 
+# --- lombok ------------------------------------------------------------------
+# jdtls cannot see anything Lombok generates unless Lombok is loaded into the
+# language server's own JVM as an agent. Without it every `@Data`, `@Getter`,
+# `@Builder` and `@Slf4j` class is reported as missing the methods it is
+# annotated to have — a file full of red that compiles perfectly with Maven.
+#
+# It has to be a jar on disk rather than the one Maven already resolved into
+# ~/.m2: the agent is a JVM argument, fixed when jdtls starts, and jdtls starts
+# before it knows which project it is about to open. So one copy, pinned, used
+# by every project. Lombok's agent is deliberately version-tolerant about the
+# code it processes, which is what makes that safe.
+#
+# Not a Homebrew entry because there is no Lombok formula, and not a mason
+# package because mason does not carry it either. This is the download, on the
+# same terms as everything else here: fetched when it is missing, never
+# replaced behind your back. Bump LOMBOK_VERSION to update it.
+LOMBOK_VERSION=1.18.48
+LOMBOK_JAR="${XDG_DATA_HOME:-$HOME/.local/share}/java/lombok.jar"
+LOMBOK_URL="https://repo1.maven.org/maven2/org/projectlombok/lombok/$LOMBOK_VERSION/lombok-$LOMBOK_VERSION.jar"
+
+info "Installing Lombok for jdtls"
+
+if [ -f "$LOMBOK_JAR" ]; then
+  printf '    %-24s already installed\n' "lombok.jar"
+elif [ "$mode" = check ]; then
+  warn "$LOMBOK_JAR would be downloaded ($LOMBOK_VERSION)"
+else
+  mkdir -p "$(dirname "$LOMBOK_JAR")"
+  # Downloaded beside the target and moved into place, so an interrupted run
+  # leaves no half-written jar for jdtls to fail on at the next start.
+  tmp="$LOMBOK_JAR.part"
+  if curl -fsSL --max-time 120 -o "$tmp" "$LOMBOK_URL" && unzip -tqq "$tmp" >/dev/null 2>&1; then
+    mv "$tmp" "$LOMBOK_JAR"
+    printf '    %-24s %s\n' "lombok.jar" "$LOMBOK_VERSION"
+  else
+    rm -f "$tmp"
+    # Offline, or Maven Central having a day. Java still works; Lombok classes
+    # are the part that will be wrong, and the next run fixes it.
+    warn "could not download $LOMBOK_URL — Lombok-generated methods will show as errors"
+  fi
+fi
+
 # --- plugins -----------------------------------------------------------------
 # `Lazy! install` only clones what is missing, at the commit in lazy-lock.json
 # when there is one. It deliberately does not update: this runs unattended once

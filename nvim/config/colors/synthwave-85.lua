@@ -59,15 +59,15 @@ local p = {
   gold_br    = "#fff59d",
   blue       = "#03edf9",
   blue_br    = "#6effff",
-  magenta    = "#ff7edb",
-  magenta_br = "#ffb8f3",
-  hotpink    = "#f92aad",
+  magenta    = "#f92aad",
+  magenta_br = "#fb66c4",
+  hotpink    = "#ff7edb",
   cyan       = "#00f0ff",
   aqua       = "#8bfff5",
   orange     = "#ff8b39",
 }
 
--- The VS Code theme writes its washes as eight-digit hex — #ff7edb33 is
+-- The VS Code theme writes its washes as eight-digit hex — #f92aad33 is
 -- magenta at 20% over whatever is behind it. Neovim highlights have no alpha
 -- channel, so the same colours have to be mixed down to opaque here. Doing it
 -- in code rather than pasting the results keeps the intent readable: this is
@@ -454,7 +454,7 @@ local hl = {
 
   TelescopePromptNormal  = { fg = p.fg, bg = p.float },
   TelescopePromptBorder  = { fg = p.float, bg = p.float },
-  TelescopePromptTitle   = { fg = p.bg, bg = p.hotpink, bold = true },
+  TelescopePromptTitle   = { fg = p.bg, bg = p.magenta, bold = true },
   TelescopePromptPrefix  = { fg = p.magenta, bg = p.float },
   TelescopePromptCounter = { fg = p.faint, bg = p.float },
 
@@ -486,7 +486,7 @@ local hl = {
   NeoTreeCursorLine   = { bg = wash.pick },
   NeoTreeFloatBorder  = { fg = p.border, bg = p.float },
   NeoTreeFloatTitle   = { fg = p.magenta, bg = p.float, bold = true },
-  NeoTreeTitleBar     = { fg = p.bg, bg = p.hotpink, bold = true },
+  NeoTreeTitleBar     = { fg = p.bg, bg = p.magenta, bold = true },
 
   -- The project root is the one thing in the pane that is not a choice, so it
   -- gets the heading treatment rather than another file colour.
@@ -526,7 +526,7 @@ local hl = {
   LazyNormal       = { fg = p.fg, bg = p.float },
   LazyButton       = { fg = p.fg, bg = p.raised },
   LazyButtonActive = { fg = p.bg, bg = p.magenta, bold = true },
-  LazyH1           = { fg = p.bg, bg = p.hotpink, bold = true },
+  LazyH1           = { fg = p.bg, bg = p.magenta, bold = true },
   LazyH2           = { fg = p.magenta, bold = true },
   LazySpecial      = { fg = p.cyan },
   LazyCommit       = { fg = p.orange },

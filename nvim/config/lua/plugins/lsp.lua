@@ -110,6 +110,11 @@ return {
       -- symbols, `K` hover, `<C-s>` signature help in insert mode, `[d` and `]d`
       -- to step through diagnostics. See :help lsp-defaults. What follows is
       -- only what Neovim leaves out.
+      -- Which servers have already been reported as still starting. LspAttach
+      -- fires once per buffer, so without this, opening a second Java file
+      -- announces the same server a second time.
+      local announced = {}
+
       vim.api.nvim_create_autocmd("LspAttach", {
         group = vim.api.nvim_create_augroup("davconf.lsp", { clear = true }),
         callback = function(ev)
@@ -122,6 +127,57 @@ return {
           -- works. gd is the gesture everyone reaches for anyway.
           map("gd", vim.lsp.buf.definition, "Go to definition")
           map("gD", vim.lsp.buf.declaration, "Go to declaration")
+
+          -- Java needs the two lines above explained. Most servers list
+          -- everything they can do in the reply to `initialize`, and from the
+          -- moment they attach, gd works. jdtls does not: it declares
+          -- references, implementation, typeDefinition and declaration up
+          -- front, but registers textDocument/definition and
+          -- textDocument/hover *dynamically*, after it has finished reading
+          -- the project. Until that registration arrives the gap is real, and
+          -- pressing gd gets Neovim's own answer for it — "method
+          -- textDocument/definition is not supported by any server", which
+          -- reads like this file is wrong rather than like a server that is
+          -- still importing a pom. K, mapped by Neovim itself, says the same
+          -- about hover.
+          --
+          -- On a one-class Maven project that window is about a second. On a
+          -- real one it is tens of seconds the first time the project is
+          -- opened, and `downloadSources` in after/lsp/jdtls.lua — a jar of
+          -- sources fetched per dependency — is a good part of why.
+          --
+          -- There is no statusline in this config to hang vim.lsp.status()
+          -- off, so this is the whole report: one line when a server attaches
+          -- without go-to-definition, one when it gains it. Servers that
+          -- declare it up front never trigger either.
+          if not announced[client.id] and not client:supports_method("textDocument/definition") then
+            announced[client.id] = true
+            vim.notify(client.name .. ": starting — go-to-definition and hover not ready yet")
+
+            local timer = assert(vim.uv.new_timer())
+            local waited = 0
+            timer:start(500, 500, vim.schedule_wrap(function()
+              waited = waited + 500
+
+              local function done(message, level)
+                timer:stop()
+                timer:close()
+                vim.notify(client.name .. ": " .. message, level)
+              end
+
+              if client:is_stopped() then
+                timer:stop()
+                timer:close()
+              elseif client:supports_method("textDocument/definition") then
+                done(("ready after %.1fs"):format(waited / 1000))
+              elseif waited >= 180000 then
+                -- Three minutes is past any honest import. Something is wrong
+                -- with the project rather than slow about it — :LspLog is
+                -- where jdtls says what.
+                done("still has no go-to-definition after 3m — see :LspLog", vim.log.levels.WARN)
+              end
+            end))
+          end
 
           -- <leader>c for code: <leader>f is Telescope and <leader>e is the
           -- explorer, and nothing else in this config claims c.

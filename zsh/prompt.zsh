@@ -21,7 +21,7 @@
 
 # ── Palette ──────────────────────────────────────────────────────────────────
 # Same hexes as ghostty/config, named for what they do here.
-sw_neon=#ff7edb        # the frame, the caret, anything structural
+sw_neon=#f92aad        # the frame, the caret, anything structural
 sw_cyan=#00f0ff        # where you are
 sw_gold=#fede5d        # what branch you are on
 sw_coral=#fe4450       # something is wrong
@@ -43,7 +43,7 @@ SPACESHIP_PROMPT_DEFAULT_SUFFIX=" "
 # prefix, so the corner cannot ride along on dir — it is its own section, which
 # also keeps it correct when user@host appears in front of dir over ssh.
 spaceship_neon_open() {
-  spaceship::section --color "#ff7edb" --symbol "╭─ "
+  spaceship::section --color "#f92aad" --symbol "╭─ "
 }
 
 # Git and language versions, nothing else. The cloud and container sections

@@ -90,9 +90,78 @@ for i, jdk in ipairs(jdks) do
   table.insert(runtimes, { name = jdk.name, path = jdk.path, default = i == 1 })
 end
 
+-- Lombok, as a JVM agent on the language server itself.
+--
+-- Nothing else will do. Lombok does not generate source that jdtls could read;
+-- it rewrites the compiler's own syntax tree while the compiler is running, so
+-- the getters and setters an annotation promises exist only inside a JVM that
+-- loaded Lombok as an agent. jdtls without it reports every `@Data`,
+-- `@Getter`, `@Builder` and `@Slf4j` class as missing the methods the rest of
+-- the project calls on it — a file full of errors that Maven compiles without
+-- a word. This is the whole fix for that.
+--
+-- The jar is nvim/update.sh's, at a fixed path outside this repo; see the
+-- lombok section there for why it is a pinned download rather than the copy
+-- Maven already put in ~/.m2.
+--
+-- JDTLS_JVM_ARGS is nvim-lspconfig's own way in: its `cmd` reads that variable
+-- and turns each whitespace-separated word into a `--jvm-arg=` for the jdtls
+-- launcher. Using it means not restating the launcher, the data directory or
+-- the workspace layout here, which is the same bargain the rest of this file
+-- makes. It also means the value is read from Neovim's environment rather than
+-- from `cmd_env`, so this is set on the process — unlike JAVA_HOME below,
+-- which is deliberately not. That is safe in a way JAVA_HOME is not: nothing
+-- but a jdtls launcher has ever read JDTLS_JVM_ARGS, so a `:terminal` that
+-- inherits it inherits something inert.
+--
+-- Appended rather than assigned, so a value exported by the shell survives.
+-- And no spaces in the path, because the splitting is on whitespace.
+local lombok = vim.fs.joinpath(vim.env.XDG_DATA_HOME or (vim.env.HOME .. "/.local/share"), "java", "lombok.jar")
+
+if vim.fn.filereadable(lombok) == 1 then
+  local existing = vim.env.JDTLS_JVM_ARGS
+  local arg = "-javaagent:" .. lombok
+  if not (existing or ""):find(arg, 1, true) then
+    vim.env.JDTLS_JVM_ARGS = existing and (existing .. " " .. arg) or arg
+  end
+elseif not vim.g.davconf_lombok_warned then
+  -- Worth saying out loud rather than letting it look like a broken project:
+  -- without the agent, Lombok classes are wrong and nothing explains why.
+  -- Once per session, not once per evaluation — Neovim resolves this file
+  -- again every time it works out a configuration for jdtls, and a warning
+  -- that repeats is a warning that gets scrolled past.
+  vim.g.davconf_lombok_warned = true
+  vim.notify("lombok.jar is missing — run ./nvim/update.sh, or Lombok classes will show errors", vim.log.levels.WARN)
+end
+
+-- Spring Boot's half of the work that happens inside jdtls.
+--
+-- The Spring Boot language server is a separate process — see
+-- lua/plugins/spring-boot.lua — but a good part of what it knows it cannot
+-- find out on its own: which beans a project declares, what a `@Value`
+-- resolves to, where an `@Autowired` field is satisfied from. All of that is
+-- the Java model, and only jdtls has it. These jars are the Eclipse plugins
+-- that let the two talk: loaded into jdtls, they answer the Boot server's
+-- questions about the project.
+--
+-- Without them the Boot server still starts and still completes
+-- application.properties keys, because those come from the spring-configuration
+-- metadata in the jars on the classpath. It is the Java-side navigation that
+-- quietly does not work.
+--
+-- pcall because this file has to keep working when the plugin is not there —
+-- a machine that has not run lazy.nvim yet, or a `:Lazy` that failed. jdtls
+-- with no bundles is jdtls without Spring, not a broken Java setup.
+local ok, spring_boot = pcall(require, "spring_boot")
+local bundles = ok and spring_boot.java_extensions() or {}
+
 ---@type vim.lsp.Config
 return {
   cmd_env = launcher and { JAVA_HOME = launcher } or nil,
+
+  -- Eclipse plugins loaded into the language server. Empty when spring-boot.nvim
+  -- is not installed, which is the same as not passing it at all.
+  init_options = { bundles = bundles },
 
   settings = {
     java = {

@@ -6,7 +6,7 @@
 #
 # Same hexes as ghostty/config, one job each:
 #   #00f0ff cyan    a command that exists        #fe4450 coral   one that does not
-#   #fede5d gold    quoted text                  #ff7edb magenta operators, flags
+#   #fede5d gold    quoted text                  #f92aad magenta operators, flags
 #   #72f1b8 lime    keywords, sudo               #d4c8ff lilac   paths
 #   #495495 dim     comments, the suggestion
 
@@ -31,25 +31,25 @@ ZSH_HIGHLIGHT_STYLES[path_pathseparator]='fg=#495495'
 ZSH_HIGHLIGHT_STYLES[path_prefix]='fg=#d4c8ff,underline'
 ZSH_HIGHLIGHT_STYLES[globbing]='fg=#ff8b39'
 ZSH_HIGHLIGHT_STYLES[history-expansion]='fg=#ff8b39'
-ZSH_HIGHLIGHT_STYLES[single-hyphen-option]='fg=#ff7edb'
-ZSH_HIGHLIGHT_STYLES[double-hyphen-option]='fg=#ff7edb'
-ZSH_HIGHLIGHT_STYLES[back-quoted-argument]='fg=#ffb8f3'
+ZSH_HIGHLIGHT_STYLES[single-hyphen-option]='fg=#f92aad'
+ZSH_HIGHLIGHT_STYLES[double-hyphen-option]='fg=#f92aad'
+ZSH_HIGHLIGHT_STYLES[back-quoted-argument]='fg=#fb66c4'
 ZSH_HIGHLIGHT_STYLES[single-quoted-argument]='fg=#fede5d'
 ZSH_HIGHLIGHT_STYLES[double-quoted-argument]='fg=#fede5d'
 ZSH_HIGHLIGHT_STYLES[dollar-quoted-argument]='fg=#fede5d'
-ZSH_HIGHLIGHT_STYLES[dollar-double-quoted-argument]='fg=#ffb8f3'
-ZSH_HIGHLIGHT_STYLES[back-double-quoted-argument]='fg=#ffb8f3'
+ZSH_HIGHLIGHT_STYLES[dollar-double-quoted-argument]='fg=#fb66c4'
+ZSH_HIGHLIGHT_STYLES[back-double-quoted-argument]='fg=#fb66c4'
 ZSH_HIGHLIGHT_STYLES[assign]='fg=#d4c8ff'
-ZSH_HIGHLIGHT_STYLES[redirection]='fg=#ff7edb,bold'
-ZSH_HIGHLIGHT_STYLES[commandseparator]='fg=#ff7edb,bold'
-ZSH_HIGHLIGHT_STYLES[named-fd]='fg=#ff7edb'
+ZSH_HIGHLIGHT_STYLES[redirection]='fg=#f92aad,bold'
+ZSH_HIGHLIGHT_STYLES[commandseparator]='fg=#f92aad,bold'
+ZSH_HIGHLIGHT_STYLES[named-fd]='fg=#f92aad'
 ZSH_HIGHLIGHT_STYLES[comment]='fg=#495495,italic'
 ZSH_HIGHLIGHT_STYLES[rc-quote]='fg=#fede5d'
 
 # Nested brackets, so a long pipeline shows you where it closes — and an
 # unclosed one turns coral.
 ZSH_HIGHLIGHT_STYLES[bracket-error]='fg=#fe4450,bold'
-ZSH_HIGHLIGHT_STYLES[bracket-level-1]='fg=#ff7edb'
+ZSH_HIGHLIGHT_STYLES[bracket-level-1]='fg=#f92aad'
 ZSH_HIGHLIGHT_STYLES[bracket-level-2]='fg=#00f0ff'
 ZSH_HIGHLIGHT_STYLES[bracket-level-3]='fg=#fede5d'
 ZSH_HIGHLIGHT_STYLES[bracket-level-4]='fg=#72f1b8'
@@ -77,7 +77,7 @@ zstyle ':completion:*' group-name ''
 # One call, both values — a second zstyle for the same style would replace this
 # one rather than add to it.
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}" "ma=38;2;26;16;51;48;2;249;42;173"
-zstyle ':completion:*:descriptions' format '%F{#ff7edb}── %d%f'
+zstyle ':completion:*:descriptions' format '%F{#f92aad}── %d%f'
 zstyle ':completion:*:corrections'  format '%F{#fede5d}── %d (errors: %e)%f'
 zstyle ':completion:*:messages'     format '%F{#00f0ff}── %d%f'
 zstyle ':completion:*:warnings'     format '%F{#fe4450}── no matches%f'
