@@ -505,10 +505,10 @@ terminal font does not need changing.
 
 #### Copilot
 
-`copilot.lua` rather than the official `github/copilot.vim`: this config has no
-completion engine for Copilot to plug into, and copilot.lua's virtual-text mode
-is the one that works standalone. Suggestions appear inline, dimmed and italic,
-as you type.
+`copilot.lua` rather than the official `github/copilot.vim`: virtual text is
+what is wanted here, and copilot.lua is the one that does it standalone rather
+than as a source inside a completion engine. Suggestions appear inline, dimmed
+and italic, as you type.
 
 | Key        | Does                        |
 | ---------- | --------------------------- |
@@ -532,6 +532,13 @@ are given stops doing its old job entirely. That rules out `<C-k>`, which is
 digraph entry, and `<C-j>`, which is a newline. Control plus an arrow has no
 insert-mode meaning to lose.
 
+There is a completion engine now — see [Completion](#completion) — and the two
+share the same line of screen without colliding. blink's own ghost text is off,
+because it draws where the Copilot suggestion already is, and blink's keymap
+avoids `<C-y>` and `<C-e>` so the table above keeps working. The split ends up
+readable: **`<C-y>` takes what Copilot wrote, `<CR>` takes what the language
+server suggested.**
+
 No Node needed. Current copilot.lua downloads a native `copilot-language-server`
 binary into `~/.local/share/nvim/copilot.lua/` on first load — which matters
 here, because Node comes from `nvm` in the `dev` profile and a machine without
@@ -541,6 +548,159 @@ Authentication is shared, not per-editor: the token lives in
 `~/.config/github-copilot/`, so a machine where the JetBrains IDEs are already
 signed in needs nothing. On a fresh one, `:Copilot auth` once. `:Copilot status`
 says whether it is online and attached.
+
+#### Language servers
+
+Java, TypeScript, JavaScript and Angular, plus the filetypes an Angular
+component is actually made of. `nvim/config/lua/plugins/lsp.lua` has all three
+plugins in one file because they are one feature and none of them does anything
+alone:
+
+| Plugin                 | Job                                                     |
+| ---------------------- | ------------------------------------------------------- |
+| `mason.nvim`           | Installs the server binaries                             |
+| `mason-lspconfig.nvim` | Installs the ones named in `ensure_installed`, then enables every server mason has |
+| `nvim-lspconfig`       | A directory of `lsp/<server>.lua` files: where each binary is, and what a project root looks like for it |
+
+| Server      | Covers                                                |
+| ----------- | ----------------------------------------------------- |
+| `jdtls`     | Java                                                  |
+| `ts_ls`     | JavaScript and TypeScript                             |
+| `angularls` | Angular templates, and the template side of a component class |
+| `eslint`    | The lint rules a project configures, as diagnostics   |
+| `html`      | Templates that are not Angular                        |
+| `cssls`     | Component styles                                      |
+| `jsonls`    | `angular.json`, `tsconfig.json`, `package.json` — with schemas |
+
+**Almost none of this is a plugin API any more.** Since Neovim 0.11 the
+launching, merging and enabling is built in — `vim.lsp.config()` and
+`vim.lsp.enable()` — and nvim-lspconfig is reduced to data on the runtimepath.
+That is why the per-server settings in this repo are not in `lua/plugins/` but
+in `nvim/config/after/lsp/<server>.lua`: `after/` is the standard Vim mechanism
+for overriding a runtime file a plugin provided, Neovim merges the two with
+this side winning, and the file is only read when a buffer of that language
+opens. Putting them in the plugin spec would mean building every server's
+settings table on every start. See `:help lsp-config-merge`.
+
+**Why mason and not Homebrew,** which is this repo's package manager for
+everything else: Angular's server is not in homebrew at all, and
+`typescript-language-server` would pull brew's own node in alongside the `nvm`
+one that `zsh/zshrc` puts on `$PATH`. mason installs all of them under
+`~/.local/share/nvim/mason` using the node already there — the same bargain
+lazy.nvim makes one level up. What it costs is `lazy-lock.json`'s guarantee:
+plugin commits are pinned and committed, server versions are whatever mason
+fetched. `:Mason` lists them, `u` updates one, `U` updates all.
+
+**The servers install on the first interactive `nvim`, not from `update.sh`.**
+mason-lspconfig skips `ensure_installed` in headless mode by design, and
+`nvim/update.sh` is headless — so a fresh machine gets the plugins from the
+unattended run and the server binaries the first time a real editor opens.
+That first start downloads a few hundred MB and shows progress while it does.
+`:Mason` is where to watch it, and `:MasonInstall <package>` forces one by hand.
+
+##### Keys
+
+Most of what you want is already mapped by Neovim itself and is deliberately
+not repeated in this config — `grn` rename, `gra` code action, `grr`
+references, `gri` implementation, `grt` type definition, `gO` document symbols,
+`K` hover, `<C-s>` signature help in insert mode, `[d` and `]d` to step through
+diagnostics. See `:help lsp-defaults`. What the config adds is what Neovim
+leaves out:
+
+| Key          | Does                                        |
+| ------------ | ------------------------------------------- |
+| `gd`         | Go to definition                            |
+| `gD`         | Go to declaration                           |
+| `<leader>cd` | Diagnostics for this line, in a float       |
+| `<leader>cf` | Format the buffer                           |
+| `<leader>ci` | Toggle inlay hints                          |
+
+`<leader>c` for code, since `<leader>f` is Telescope and `<leader>e` is the
+explorer. Inlay hints are off until asked for: they are useful while reading
+unfamiliar code and in the way while writing familiar code, and which of those
+you are doing is not something a config file can know.
+
+Diagnostics are configured because Neovim shows none of it by default —
+`virtual_text` and `signs` are both off out of the box, so an unconfigured LSP
+setup looks like it is doing nothing until you land on the line. Nothing in
+`lsp.lua` picks a colour: `Diagnostic*`, `DiagnosticVirtualText*` and
+`LspInlayHint` are all already in `colors/synthwave-85.lua`. Virtual text names
+its server when more than one is attached, which in a TypeScript buffer is the
+normal case — `ts_ls`, `angularls` and `eslint` all have opinions about the
+same line, and without the attribution you cannot tell whose rule you are
+looking at.
+
+##### Java
+
+`after/lsp/jdtls.lua` discovers every JDK under
+`/Library/Java/JavaVirtualMachines` — the `temurin@17`, `@21` and `@25` casks
+in `Brewfile.dev` all land there — reads the major version out of each one's
+`release` file, and hands jdtls the list. A Maven project that declares
+`maven.compiler.release` is then analysed against that JDK rather than against
+whatever the server happens to be running on.
+
+**The JDK that runs jdtls is a separate question from the JDKs it compiles
+against, and `jenv` is what makes it one.** jdtls needs Java 21 or newer to
+start at all, and `java` on `$PATH` is a jenv shim that resolves to whatever
+`.java-version` the project pins — so opening a Java 17 project would hand
+jdtls a 17 and it would refuse to launch, with a class-file-version stack trace
+that reads like a problem with the project. The config pins the newest JDK ≥ 21
+for the server process only, through `cmd_env`. Not by exporting `JAVA_HOME`:
+that would be inherited by `:terminal` and by anything run from it, and Maven
+prefers `JAVA_HOME` over `$PATH`, so a jenv-pinned project would quietly
+compile against the wrong JDK.
+
+This is plain jdtls through `vim.lsp`, not the `nvim-jdtls` plugin. What that
+leaves out is the Eclipse-specific extensions — running a single test from the
+buffer, the debugger, extract-to-method. Everything else is here. `nvim-jdtls`
+is the upgrade path if the test running is ever missed.
+
+jdtls keeps an index per project under `~/.cache/nvim/jdtls/workspace/`, keyed
+only by the project directory's name, and it is not always self-healing. When
+it starts insisting on a dependency that is no longer in the pom, deleting that
+directory and reopening is the fix.
+
+#### Completion
+
+`blink.cmp`, in `nvim/config/lua/plugins/blink.lua` — the menu the language
+servers above feed, with `friendly-snippets` behind the snippet source. Sources
+are LSP, path, snippets and buffer, in that order; buffer is last because in a
+Java or TypeScript file every word in it is also a word the server knows,
+spelled better.
+
+| Key          | Does                                              |
+| ------------ | ------------------------------------------------- |
+| `<C-n>`      | Open the menu / next item                         |
+| `<C-p>`      | Previous item                                     |
+| `<CR>`       | Accept                                            |
+| `<Tab>`      | Next snippet placeholder                          |
+| `<S-Tab>`    | Previous snippet placeholder                      |
+| `<C-Space>`  | Show the menu, or toggle the documentation window |
+| `<C-c>`      | Cancel                                            |
+
+**None of blink's four presets are used, and that is the point.** All of them
+bind `<C-e>` and `<C-y>` — both already Copilot's, for reasons the Copilot
+section works through and that are not worth re-litigating for a menu — and all
+of them bind `<C-k>`, which is digraph entry. So every key is spelled out with
+`preset = "none"`, and each one ends in `fallback`: with no menu open `<CR>` is
+still a newline, `<Tab>` still indents, `<C-n>` and `<C-p>` are still Vim's own
+keyword completion.
+
+`version = "1.*"` is not optional. The fuzzy matcher is Rust, and the release
+tags are what carry prebuilt binaries for it; tracking the default branch would
+find no binary and need `build = "cargo build --release"` and a Rust toolchain
+this repo does not install. The default branch is also where blink's v2 is
+being built, which additionally wants a separate `blink.lib` plugin.
+
+It has no lazy trigger, unlike everything else here. `lsp.lua` asks blink for
+the completion capabilities to advertise to servers — at `BufReadPre`, before
+anything has entered insert mode — so an `event = "InsertEnter"` would be a lie
+lazy.nvim quietly resolves by loading it anyway. It costs about 3ms of a 16ms
+startup.
+
+Nothing in the file picks a colour. blink's highlight groups link to `Pmenu`,
+`PmenuSel`, `PmenuKind` and `PmenuMatch`, which `colors/synthwave-85.lua`
+already defines, so the menu is in palette without being mentioned by it.
 
 #### Treesitter
 
@@ -553,8 +713,11 @@ an unpinned `:Lazy update` would move onto it and break the setup call.
 Parsers are compiled C, built on the machine into the plugin's own directory
 under `~/.local/share/nvim/lazy` — nothing lands in this repo, and they are not
 in the lockfile because they follow whatever `nvim-treesitter` commit is. The
-`ensure_installed` list covers what this repo is made of plus what every repo
-has; `auto_install` picks up anything else the first time you open one.
+`ensure_installed` list covers what this repo is made of, what every repo has,
+and the languages the servers above run for — a server and a parser answer
+different questions about the same buffer, and the editor feels half-configured
+with only one of them. `auto_install` picks up anything else the first time you
+open one.
 
 Both run in the background after the first start, so a fresh machine has a
 short window where a file opens unhighlighted and then repaints. `:TSUpdate`

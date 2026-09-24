@@ -26,13 +26,21 @@ return {
   event = { "BufReadPost", "BufNewFile" },
 
   opts = {
-    -- The languages this repo is actually made of, plus the ones every repo
-    -- has. Anything else is a :TSInstall away and does not need to be listed
-    -- here — this is the set worth having on a fresh machine without asking.
+    -- The languages this repo is actually made of, the ones every repo has,
+    -- and the ones lua/plugins/lsp.lua runs a language server for — a server
+    -- and a parser answer different questions about the same buffer, and the
+    -- editor feels half-configured when only one of them is there.
+    -- Anything else is a :TSInstall away and does not need to be listed here;
+    -- this is the set worth having on a fresh machine without asking.
     ensure_installed = {
       "bash", "c", "diff", "git_config", "gitcommit", "gitignore",
       "json", "lua", "luadoc", "markdown", "markdown_inline",
       "query", "toml", "vim", "vimdoc", "xml", "yaml",
+
+      -- The LSP languages. "angular" is the parser for a component template —
+      -- Neovim gives *.component.html the filetype htmlangular, which is what
+      -- separates it from plain "html" above the parser level.
+      "angular", "css", "html", "java", "javascript", "scss", "tsx", "typescript",
     },
 
     -- Compile missing parsers in the background rather than blocking the

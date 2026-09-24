@@ -1,9 +1,16 @@
 -- GitHub Copilot, as inline suggestions.
 --
--- copilot.lua rather than the official github/copilot.vim: this config has no
--- completion engine for Copilot to plug into, and copilot.lua's virtual-text
--- mode is the one that works standalone. It is also lua, so it lazy-loads on
--- InsertEnter like everything else here instead of on startup.
+-- copilot.lua rather than the official github/copilot.vim: virtual-text mode
+-- is what is wanted here, and copilot.lua is the one that does it standalone
+-- rather than as a source inside a completion engine. It is also lua, so it
+-- lazy-loads on InsertEnter like everything else here instead of on startup.
+--
+-- There *is* a completion engine now — blink.cmp, in blink.lua — and the two
+-- stay out of each other's way on purpose. blink's own ghost text is switched
+-- off, because it draws in exactly the place the suggestion below does, and
+-- blink's keymap avoids <C-y> and <C-e> so the keys set here keep working:
+-- <C-y> accepts what Copilot wrote, <CR> accepts what the language server
+-- suggested.
 return {
   "zbirenbaum/copilot.lua",
   cmd = "Copilot",
