@@ -18,7 +18,7 @@ W, PIX = 15, 16                    # half-width in chars, pixel rows
 COLS = W * 2
 SLITS = {9, 11, 13, 14}            # pixel rows left empty -> retro stripes
 STOPS = ["fede5d", "ffc85d", "ff9f45", "ff8b39",
-         "fe4450", "f92aad", "ff7edb", "ffb8f3"]
+         "fe4450", "f92aad", "fb66c4", "ff7edb"]
 GRID = "\\e[38;2;3;237;249m"
 
 

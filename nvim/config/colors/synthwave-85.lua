@@ -61,6 +61,10 @@ local p = {
   blue_br    = "#6effff",
   magenta    = "#f92aad",
   magenta_br = "#fb66c4",
+  -- ANSI magenta, which is not the keyword magenta: ghostty/config puts the
+  -- accent on `foreground` and the softer one on palette 5. Only :terminal
+  -- uses this.
+  magenta_ansi = "#e45ab1",
   hotpink    = "#ff7edb",
   cyan       = "#00f0ff",
   aqua       = "#8bfff5",
@@ -575,7 +579,7 @@ end
 -- :terminal, given the Ghostty palette verbatim so a shell inside nvim inside
 -- Ghostty is the same sixteen colours the whole way down.
 local ansi = {
-  p.float, p.coral, p.green, p.gold, p.blue, p.magenta, p.cyan, p.fg,
+  p.float, p.coral, p.green, p.gold, p.blue, p.magenta_ansi, p.cyan, p.fg,
   p.comment, p.coral_br, p.green_br, p.gold_br, p.blue_br, p.magenta_br, p.aqua, p.white,
 }
 for i, colour in ipairs(ansi) do

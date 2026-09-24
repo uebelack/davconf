@@ -7,19 +7,20 @@
 # ── Theme / Colors ─────────────────────────────────────────────
 # Deep indigo midnight sky with dimmed-magenta foreground + neon glow
 #
-# foreground is e45ab1: palette 5's hue (322°) held at 70% saturation rather
-# than 95%, with the lightness set so body text lands at 5.49:1 against the
-# background. Same hue line, so unstyled output still reads as the editors'
-# magenta — just not at full neon. Body text is most of what is on screen, and
-# f92aad across all of it is both tiring and a waste of the colour: leaving
-# palette 5 undimmed is what lets ANSI magenta mean something when it actually
-# shows up.
+# foreground is f92aad, the editors' magenta itself — the same value keywords
+# are in VS Code, IntelliJ and nvim, at full 95% saturation. Unstyled output is
+# the theme's accent rather than a dimmed relative of it, which is the loudest
+# this can be set and is the point: 5.11:1 against the background, clear of the
+# 4.5:1 floor.
 #
-# That 5.49:1 is deliberate rather than incidental — it is what the older,
-# paler foreground measured too. Going from d168b9 to e45ab1 bought saturation
-# (53% → 70%), not contrast, so nothing about readability moved.
+# palette 5 takes the softer e45ab1 in exchange — same hue (322°), saturation
+# dropped to 70%. Inverted from the usual arrangement, where the ANSI colour is
+# the vivid one and body text the muted one. Worth knowing what that trades: a
+# program emitting ANSI magenta now reads quieter than the text around it, so
+# magenta stops being an attention-getter in terminal output. The plain colour
+# carries the emphasis instead.
 background = 1a1033
-foreground = e45ab1
+foreground = f92aad
 cursor-color = 00f0ff
 cursor-text = 1a1033
 selection-background = ff8b39
@@ -42,7 +43,7 @@ palette = 11=#fff59d
 palette = 4=#03edf9
 palette = 12=#6effff
 # magenta / bright-magenta  (neon pink)
-palette = 5=#f92aad
+palette = 5=#e45ab1
 palette = 13=#fb66c4
 # cyan / bright-cyan  (miami teal)
 palette = 6=#00f0ff
@@ -66,7 +67,8 @@ window-theme = dark
 macos-titlebar-style = transparent
 unfocused-split-opacity = 0.55
 
-# Hot-pink neon divider bleeding between splits
+# Neon divider bleeding between splits. The accent, not palette 5 —
+# those are different colours now.
 split-divider-color = f92aad
 
 # ── Font ───────────────────────────────────────────────────────
