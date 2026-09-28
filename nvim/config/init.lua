@@ -79,3 +79,25 @@ local ok, err = pcall(vim.cmd.colorscheme, "synthwave-85")
 if not ok then
   vim.notify("synthwave-85 colorscheme failed to load: " .. tostring(err), vim.log.levels.WARN)
 end
+
+-- The system clipboard, wired to the unnamed register: y and p here are pbcopy
+-- and pbpaste, so a yank in nvim pastes into Ghostty, the browser and the
+-- JetBrains IDEs without reaching for "+ every time.
+--
+-- unnamedplus rather than unnamed: on macOS both + and * are pbcopy, so the
+-- two are the same thing here, and unnamedplus is what a Linux machine running
+-- this config would want. Over SSH Neovim falls back to OSC 52 on its own and
+-- Ghostty implements it, so this keeps working on a remote host with no
+-- pbcopy at all.
+--
+-- Deferred rather than set right here. Assigning 'clipboard' makes Neovim go
+-- looking for a provider, and that is a `pbcopy`/`xclip`/`wl-copy` hunt on
+-- $PATH before the first paint. vim.schedule moves it behind the UI coming up,
+-- which is early enough that nothing can have yanked yet.
+--
+-- What this costs: every delete and change writes the unnamed register too, so
+-- d, c and x all replace the clipboard. "_d is the black-hole register for when
+-- that is not wanted.
+vim.schedule(function()
+  vim.opt.clipboard = "unnamedplus"
+end)
