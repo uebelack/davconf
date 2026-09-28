@@ -9,8 +9,8 @@ brew "vim"         # $EDITOR — macOS ships one, but an old build without
 brew "gnupg"       # GPG_TTY, signed commits
 brew "lazygit"     # the `lg` alias
 
-# Neovim, configured in nvim/ in this repo. $EDITOR stays vim — this is the
-# one you open on purpose, not the one git drops you into. ripgrep and fd are
+# Neovim, configured in nvim/ in this repo, and $EDITOR — zshrc points vi and
+# vim at it as well, so there is one editor rather than two. ripgrep and fd are
 # not optional extras: Telescope shells out to them for live_grep and
 # find_files, and silently falls back to something much slower without them.
 brew "neovim"

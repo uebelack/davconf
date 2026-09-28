@@ -44,7 +44,23 @@ source "$ZSH/oh-my-zsh.sh"
 [[ -f "$davconf_dir/colors.zsh" ]] && source "$davconf_dir/colors.zsh"
 
 # ----------------------------------------------------------- user configuration
-export EDITOR=vim
+# Neovim is the editor. nvim/ in this repo is a real configuration rather than
+# a stock vim with a colorscheme, so there is no reason for git to drop you
+# into anything else.
+#
+# The fallback covers one window: a fresh machine where zsh is already running
+# but brew has not finished installing neovim. An $EDITOR naming a binary that
+# is not there turns `git commit` into an error message instead of an editor.
+#
+# VISUAL as well as EDITOR, because git consults VISUAL first and several other
+# tools do too — setting only one leaves which editor you get depending on who
+# is asking.
+if command -v nvim >/dev/null; then
+  export EDITOR=nvim
+else
+  export EDITOR=vim
+fi
+export VISUAL=$EDITOR
 
 # ---------------------------------------------------------------------- node
 # Sourcing nvm.sh takes ~500ms of every single shell, and all it does up front
@@ -85,8 +101,20 @@ nvm() {
 # -------------------------------------------------------------------- aliases
 alias flushdns='sudo killall -HUP mDNSResponder'
 alias lg='lazygit'
-# /usr/bin/vi is Apple's vim, which is not the one brew installed.
-alias vi='vim'
+# /usr/bin/vi and /usr/bin/vim are Apple's vim — neither the one brew installed
+# nor the one this repo configures. Both names land in Neovim instead, so the
+# reflex gets the editor in nvim/ rather than a stock vim with none of it.
+# Apple's is still reachable as `command vim` if anything ever needs it.
+#
+# Aliases are interactive-shell only, which is why $EDITOR above is set to the
+# real binary and not to one of these: a script or a hook that reads $EDITOR
+# never sees an alias.
+if command -v nvim >/dev/null; then
+  alias vi='nvim'
+  alias vim='nvim'
+else
+  alias vi='vim'
+fi
 
 # Jump to this repo, wherever it happens to be cloned. :h is the repo root,
 # since $davconf_dir is the zsh/ directory inside it. The path is baked in at
