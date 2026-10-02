@@ -49,8 +49,9 @@ source "$ZSH/oh-my-zsh.sh"
 # into anything else.
 #
 # The fallback covers one window: a fresh machine where zsh is already running
-# but brew has not finished installing neovim. An $EDITOR naming a binary that
-# is not there turns `git commit` into an error message instead of an editor.
+# but the package manager has not finished installing neovim. An $EDITOR naming
+# a binary that is not there turns `git commit` into an error message instead of
+# an editor.
 #
 # VISUAL as well as EDITOR, because git consults VISUAL first and several other
 # tools do too — setting only one leaves which editor you get depending on who
@@ -99,12 +100,21 @@ nvm() {
 }
 
 # -------------------------------------------------------------------- aliases
-alias flushdns='sudo killall -HUP mDNSResponder'
+# Same name, same job, two completely different resolvers underneath: macOS
+# caches in mDNSResponder, Ubuntu in systemd-resolved. Defined per platform
+# rather than left to fail on the one it does not apply to, because the whole
+# point of the alias is not having to remember which.
+if [[ $OSTYPE == darwin* ]]; then
+  alias flushdns='sudo killall -HUP mDNSResponder'
+else
+  alias flushdns='sudo resolvectl flush-caches'
+fi
 alias lg='lazygit'
-# /usr/bin/vi and /usr/bin/vim are Apple's vim — neither the one brew installed
-# nor the one this repo configures. Both names land in Neovim instead, so the
-# reflex gets the editor in nvim/ rather than a stock vim with none of it.
-# Apple's is still reachable as `command vim` if anything ever needs it.
+# /usr/bin/vi and /usr/bin/vim are the system's own vim — Apple's on macOS, the
+# apt one on Ubuntu — and neither is the editor this repo configures. Both names
+# land in Neovim instead, so the reflex gets the config in nvim/ rather than a
+# stock vim with none of it. The real one is still reachable as `command vim` if
+# anything ever needs it.
 #
 # Aliases are interactive-shell only, which is why $EDITOR above is set to the
 # real binary and not to one of these: a script or a hook that reads $EDITOR
@@ -133,14 +143,28 @@ fpath=($fpath "$HOME/.zfunctions")
 autoload -U promptinit; promptinit
 
 # ------------------------------------------------------------- build toolchain
-export LDFLAGS="-L/opt/homebrew/opt/openssl@3/lib"
-export CPPFLAGS="-I/opt/homebrew/opt/openssl@3/include"
-export PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@3/lib/pkgconfig"
+# Homebrew keeps openssl out of the way of the system one, so anything
+# compiling against it — a pyenv Python, a native gem — has to be pointed at
+# the keg. Guarded on the directory rather than on the OS: it is also what is
+# wrong when a Mac has openssl@3 under a different prefix, and on Ubuntu the
+# headers from libssl-dev are in /usr/include where every compiler already
+# looks, so there is nothing to set.
+if [[ -d /opt/homebrew/opt/openssl@3 ]]; then
+  export LDFLAGS="-L/opt/homebrew/opt/openssl@3/lib"
+  export CPPFLAGS="-I/opt/homebrew/opt/openssl@3/include"
+  export PKG_CONFIG_PATH="/opt/homebrew/opt/openssl@3/lib/pkgconfig"
+fi
 
-export ANDROID_SDK_ROOT="$HOME/Library/Android/sdk"
-export PATH="$ANDROID_SDK_ROOT/platform-tools:$PATH"
+# The Android SDK and Flutter's version manager, neither of which installs
+# through a package manager. macOS-only: the paths are Library ones, and the
+# Linux box is headless — there is no emulator to start and no device plugged
+# into it.
+if [[ $OSTYPE == darwin* ]]; then
+  export ANDROID_SDK_ROOT="$HOME/Library/Android/sdk"
+  export PATH="$ANDROID_SDK_ROOT/platform-tools:$PATH"
 
-export PATH="$HOME/fvm/default/bin:$PATH"
+  export PATH="$HOME/fvm/default/bin:$PATH"
+fi
 
 export PATH="$HOME/.jenv/bin:$PATH"
 command -v jenv >/dev/null && eval "$(jenv init -)"
@@ -157,8 +181,14 @@ command -v pyenv >/dev/null && eval "$(pyenv init -)"
 # LM Studio CLI (lms)
 export PATH="$PATH:$HOME/.cache/lm-studio/bin"
 
-# pnpm
-export PNPM_HOME="$HOME/Library/pnpm"
+# pnpm. Its global store goes somewhere different on each platform and pnpm
+# picks the location itself, so this has to agree with it rather than choose:
+# ~/Library/pnpm on macOS, the XDG data directory on Linux.
+if [[ $OSTYPE == darwin* ]]; then
+  export PNPM_HOME="$HOME/Library/pnpm"
+else
+  export PNPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/pnpm"
+fi
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;

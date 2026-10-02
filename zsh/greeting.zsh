@@ -53,7 +53,7 @@ _davconf_greet() {
 
   # --- vitals --------------------------------------------------------------
   local loc=${DAVCONF_WEATHER_LOCATION:-Basel}
-  local weather brewout brewknown=0
+  local weather pkgout pkgknown=0
 
   # The weather is the only thing in this greeting that leaves the machine, so
   # it is the only thing a corporate proxy breaks. curl does read the
@@ -79,8 +79,25 @@ _davconf_greet() {
 
   _cache weather 1800 curl $curl_opts "https://wttr.in/${loc}?format=%c%t+%w&m"
   weather=$REPLY
-  _cache brew-outdated 900 brew outdated --quiet && brewknown=1
-  brewout=$REPLY
+  # Outdated packages, from whichever package manager this machine has. One
+  # cache entry per manager rather than one shared name, so the count can never
+  # be read back from the other platform's file.
+  #
+  # Both commands are deliberately single commands, not pipelines: _cache quotes
+  # each argument and runs the result, so a `|` would be passed to the command
+  # rather than interpreted. Counting lines happens below instead.
+  local pkglabel
+  if [[ $OSTYPE == darwin* ]]; then
+    pkglabel=BREW
+    _cache brew-outdated 900 brew outdated --quiet && pkgknown=1
+  else
+    pkglabel=APT
+    # `apt list` prints a warning about its own CLI not being stable, on stderr,
+    # which the cache refresh already discards. The lines on stdout are one per
+    # upgradable package, which is the whole answer.
+    _cache apt-outdated 900 apt list --upgradable -qq && pkgknown=1
+  fi
+  pkgout=$REPLY
 
   # Uptime from the boot clock — parsing `uptime` is a format-guessing game.
   local up="?"
@@ -99,7 +116,22 @@ _davconf_greet() {
     fi
   fi
   local disk="$(df -h / 2>/dev/null | awk 'NR==2 {print $4" free"}')"
-  local batt="$(pmset -g batt 2>/dev/null | awk -F'\t' 'NR==2 {split($2,a,";"); print a[1]}')"
+
+  # Battery. pmset is macOS's answer; on Linux it is a sysfs directory that only
+  # exists on a machine that has a battery — the Ubuntu box is a desktop, so the
+  # honest reading there is that it is on mains and there is nothing to report.
+  local batt
+  if [[ $OSTYPE == darwin* ]]; then
+    batt="$(pmset -g batt 2>/dev/null | awk -F'\t' 'NR==2 {split($2,a,";"); print a[1]}')"
+  else
+    local -a bat=(/sys/class/power_supply/BAT*(N))
+    if (( $#bat )) && [[ -r $bat[1]/capacity ]]; then
+      batt="$(<$bat[1]/capacity)%"
+      [[ -r $bat[1]/status ]] && batt+=" $(<$bat[1]/status)"
+    else
+      batt="AC power"
+    fi
+  fi
 
   # Last successful davconf sync, from the auto-update stamp.
   local synced="never"
@@ -113,10 +145,10 @@ _davconf_greet() {
   fi
 
   # Never claim "up to date" from a cache that has not been written yet.
-  local brewtxt="…"
-  if (( brewknown )); then
-    if [[ -n $brewout ]]; then brewtxt="${#${(f)brewout}} outdated"
-    else                       brewtxt="up to date"
+  local pkgtxt="…"
+  if (( pkgknown )); then
+    if [[ -n $pkgout ]]; then pkgtxt="${#${(f)pkgout}} outdated"
+    else                      pkgtxt="up to date"
     fi
   fi
 
@@ -151,7 +183,7 @@ _davconf_greet() {
     "${C}UPTIME${X}   ${W}${up:-?}${X}"
     "${C}DISK${X}     ${W}${disk:-?}${X}"
     "${C}POWER${X}    ${W}${batt:-?}${X}"
-    "${C}BREW${X}     ${W}${brewtxt}${X}"
+    "${C}${(r:9:)pkglabel}${X}${W}${pkgtxt}${X}"
     "${C}UPDATE${X}   ${W}${synced}${X}"
     ""
     "${D}${quote}${X}"

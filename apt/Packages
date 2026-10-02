@@ -1,0 +1,125 @@
+# Packages for a headless Ubuntu machine — the apt equivalent of brew/Brewfile.*.
+#
+# One file, not profiles. The Macs are three different kinds of machine; the
+# Ubuntu box is one, reached only over ssh, so there is nothing to select
+# between. apt/update.sh installs everything here.
+#
+# Nothing in here needs a display. The Mac side of this repo is largely about
+# the things around the terminal — Ghostty, AeroSpace, Karabiner, the themes —
+# and none of that has a counterpart on a machine you only ever ssh into. What
+# is left is the shell, the editor and the toolchains, which is exactly what
+# this file is.
+#
+# Syntax, read by apt/update.sh:
+#
+#   ppa:owner/name     a PPA to add before installing (Ubuntu only)
+#   package            an apt package
+#   # comment          ignored, as is a trailing one
+#
+# A package missing from this machine's release is reported by name at the end
+# of the run rather than failing it — releases differ in what they carry, and
+# that is worth seeing rather than guessing at.
+
+# --- the editor --------------------------------------------------------------
+# nvim/config in this repo uses vim.lsp.config(), which is Neovim 0.11. Ubuntu
+# ships 0.9 in 24.04 and 0.10 in 25.04, so the version in the archive is not
+# enough and the PPA is not a preference. If this PPA is ever behind 0.11 too,
+# ppa:neovim-ppa/unstable is the one tracking master.
+ppa:neovim-ppa/stable
+neovim
+
+# Telescope shells out to these for live_grep and find_files and silently falls
+# back to something much slower without them. Debian calls the fd binary
+# `fdfind`, because `fd` was already taken — apt/update.sh links it back to
+# `fd` in ~/.local/bin, which is where Telescope looks.
+ripgrep
+fd-find
+
+# The fallback $EDITOR, for the window on a fresh machine where zsh is already
+# running and neovim is not installed yet. Plain vim, not vim-gtk3: +clipboard
+# needs a display to talk to, and over ssh there is none — the clipboard that
+# matters belongs to the terminal on the other end.
+vim
+
+# --- shell ------------------------------------------------------------------
+# zsh itself. Ubuntu's default shell is bash, so this is what zsh/update.sh
+# needs before it can do anything, and `chsh -s $(command -v zsh)` afterwards
+# is the one manual step on a new machine.
+zsh
+git
+curl
+ca-certificates
+gnupg      # GPG_TTY, signed commits
+lazygit    # the `lg` alias — only in 25.04 and later
+unzip      # nvim/update.sh verifies the Lombok jar with it
+
+# --- build toolchain ---------------------------------------------------------
+# A compiler is not optional here: nvim-treesitter builds every parser from C
+# source on the machine it runs on, so without build-essential the editor comes
+# up with no syntax highlighting and an error per language.
+build-essential
+pkg-config
+
+# pyenv builds each Python from source and quietly produces one with features
+# missing when a header is absent — no ssl module, no readline in the REPL,
+# no sqlite3. These are that list. tk-dev is deliberately not among them: it
+# pulls in X11 for a GUI toolkit nothing here will ever open.
+libssl-dev
+zlib1g-dev
+libbz2-dev
+libreadline-dev
+libsqlite3-dev
+libncurses-dev
+libffi-dev
+liblzma-dev
+xz-utils
+
+# --- jvm --------------------------------------------------------------------
+# The -headless variants on purpose: the full openjdk packages drag in AWT,
+# Swing and the X libraries behind them, and nothing on this machine draws a
+# window. jdtls needs 21 to run, whatever a project targets.
+openjdk-17-jdk-headless
+openjdk-21-jdk-headless
+maven      # the `chuck` alias
+
+# --- python -----------------------------------------------------------------
+python3-dev
+python3-venv
+pipx
+virtualenv
+
+# --- ruby -------------------------------------------------------------------
+rbenv
+
+# --- node -------------------------------------------------------------------
+# No nodejs package. zsh/zshrc puts nvm's default version on $PATH, and an apt
+# node would sit in front of it and win — the same reason the Macs install node
+# through nvm rather than through Homebrew. See the note at the bottom.
+
+# --- general tooling --------------------------------------------------------
+ffmpeg
+unixodbc   # ODBC driver manager, for the SQL Server clients
+
+# Docker. The Macs install the CLI from Homebrew and the daemon from the
+# docker-desktop cask; here there is no desktop to install, so docker.io is
+# both. Ubuntu's build rather than Docker's own apt repo: it is a release or
+# two behind and that has never mattered for running containers locally.
+docker.io
+docker-compose-v2
+
+# --- not from apt -----------------------------------------------------------
+# These are in the Brewfiles but have no apt package worth having, and each one
+# installs itself somewhere zsh/zshrc already looks. Run them once by hand;
+# nothing here depends on them being present.
+#
+#   nvm      curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+#   pyenv    curl -fsSL https://pyenv.run | bash
+#   jenv     git clone https://github.com/jenv/jenv.git ~/.jenv
+#   gh       GitHub's own apt repo — see cli.github.com/packages
+#   tenv     the .deb from github.com/tofuutils/tenv/releases
+#   awscli   the official v2 installer; apt still carries v1
+#   ollama   curl -fsSL https://ollama.com/install.sh | sh
+#   whisper  pipx install openai-whisper
+#
+# And these are macOS-only, with no Linux counterpart to install: swiftformat,
+# apfel (Apple FoundationModels), and every cask in the Brewfiles.

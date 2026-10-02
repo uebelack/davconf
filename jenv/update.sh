@@ -5,17 +5,19 @@
 #   ./jenv/update.sh           # add any JDK jenv does not know yet
 #   ./jenv/update.sh --check   # list what would be added, add nothing
 #
-# Homebrew installs JDKs in two different shapes and jenv is told about
-# neither automatically:
+# JDKs land in three different shapes depending on what installed them, and
+# jenv is told about none of them automatically:
 #
-#   casks     /Library/Java/JavaVirtualMachines/<name>.jdk/Contents/Home
-#             e.g. temurin@25 — these at least show up in `java_home -V`
-#   formulae  $(brew --prefix)/opt/openjdk*/libexec/openjdk.jdk/Contents/Home
-#             e.g. openjdk@21 — invisible to java_home unless hand-symlinked
+#   macOS casks     /Library/Java/JavaVirtualMachines/<name>.jdk/Contents/Home
+#                   e.g. temurin@25 — these at least show up in `java_home -V`
+#   brew formulae   $(brew --prefix)/opt/openjdk*/libexec/openjdk.jdk/Contents/Home
+#                   e.g. openjdk@21 — invisible to java_home unless hand-symlinked
+#   Debian/Ubuntu   /usr/lib/jvm/<name>/  — openjdk-21-jdk-headless and friends,
+#                   which is where apt/Packages gets the JDKs from
 #
-# Run from update.sh straight after brew, so a JDK installed by a Brewfile is
-# usable through jenv in the same run. Safe to run any time: a JDK already
-# registered is left alone.
+# Run from update.sh straight after the package module, so a JDK a Brewfile or
+# apt/Packages just installed is usable through jenv in the same run. Safe to
+# run any time: a JDK already registered is left alone.
 
 set -euo pipefail
 
@@ -65,6 +67,14 @@ if command -v brew >/dev/null; then
     [ -x "$jdk/bin/java" ] && candidates+=("$jdk")
   done
 fi
+# Debian and Ubuntu. Unlike the Cellar, these paths are stable across upgrades
+# — apt replaces the contents of java-21-openjdk-amd64 in place rather than
+# making a new directory per version — so there is nothing to prefer a symlink
+# for. The directory does hold symlinks of its own, which the duplicate check
+# in the loop below is there to deal with.
+for jdk in /usr/lib/jvm/*; do
+  [ -x "$jdk/bin/java" ] && candidates+=("$jdk")
+done
 
 if [ ${#candidates[@]} -eq 0 ]; then
   warn "No JDKs found on this machine."
@@ -74,24 +84,38 @@ fi
 added=0
 for jdk in "${candidates[@]}"; do
   version="$("$jdk/bin/java" -version 2>&1 | head -1 | sed -E 's/.*version "([^"]+)".*/\1/')"
-  # Name it after what installed it: the cask directory (temurin-25.jdk) or,
-  # for a formula, the formula itself — every one of those is called
-  # "openjdk.jdk" on disk, which tells you nothing when several are installed.
+  # Name it after what installed it: the cask directory (temurin-25.jdk), the
+  # apt one (java-21-openjdk-amd64), or — for a brew formula — the formula
+  # itself, since every one of those is called "openjdk.jdk" on disk, which
+  # tells you nothing when several are installed.
   case "$jdk" in
     */opt/*/libexec/openjdk.jdk/*) label="$(basename "${jdk%%/libexec/*}")" ;;
+    /usr/lib/jvm/*)                label="$(basename "$jdk")" ;;
     *)                             label="$(basename "$(dirname "$(dirname "$jdk")")")" ;;
   esac
   label="$label $version"
 
+  # Matched on the resolved path, so the several names the same JDK goes by
+  # count as one. Debian is where that matters: /usr/lib/jvm holds
+  # default-java and java-1.21.0-openjdk-amd64 as symlinks beside the
+  # java-21-openjdk-amd64 they point at, and registering all three would give
+  # jenv three names for one JDK.
+  jdk_resolved="$(resolve "$jdk")"
   case "
 $registered" in
     *"
-$(resolve "$jdk")
+$jdk_resolved
 "*)
       printf '    %-46s already registered\n' "$label"
       continue
       ;;
   esac
+
+  # Added to the list before the attempt rather than after it, and in check
+  # mode too: the point is that the next name for this same JDK is recognised
+  # as a duplicate, which is true whether or not `jenv add` succeeds.
+  registered="$registered$jdk_resolved
+"
 
   if [ "$mode" = check ]; then
     printf '    %-46s \033[1;33mwould add\033[0m\n' "$label"

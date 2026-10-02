@@ -14,7 +14,8 @@
 
 # Homebrew. macOS does not put /opt/homebrew/bin on the default $PATH, and
 # ~/.zshrc has not run yet at this point, so brew and everything it installed —
-# pyenv below included — are invisible without this.
+# pyenv below included — are invisible without this. No-op on the Linux box,
+# which has no Homebrew: apt installs into /usr/bin, which is already on $PATH.
 for prefix in /opt/homebrew /usr/local; do
   [ -x "$prefix/bin/brew" ] && eval "$("$prefix/bin/brew" shellenv)" && break
 done
@@ -26,7 +27,11 @@ done
 # Nothing changes where /Applications is writable, and an existing value wins.
 # A path in ~/.config/davconf/cask-appdir overrides the test outright, for a
 # machine that passes it and still refuses the install.
-if [ -z "${HOMEBREW_CASK_OPTS:-}" ]; then
+#
+# macOS only, and explicitly so rather than by accident: on Linux there is no
+# /Applications, so the writability test would pass for the wrong reason and
+# export an --appdir for a command that machine will never run.
+if [ "$(uname -s)" = Darwin ] && [ -z "${HOMEBREW_CASK_OPTS:-}" ]; then
   cask_appdir_file="${XDG_CONFIG_HOME:-$HOME/.config}/davconf/cask-appdir"
   if [ -r "$cask_appdir_file" ]; then
     cask_appdir="${$(sed -e 's/#.*//' -e 's/[[:space:]]*$//' "$cask_appdir_file" | grep -v '^$' | head -1)/#\~/$HOME}"
@@ -51,7 +56,8 @@ command -v pyenv >/dev/null && eval "$(pyenv init --path)"
 export PATH="$PATH:$HOME/.local/bin"
 
 # JetBrains Toolbox CLI launchers (idea, webstorm, …). Absent on machines
-# without Toolbox, hence the guard.
+# without Toolbox — and on the Linux box, which has no IDE to launch — hence
+# the guard.
 toolbox_scripts="$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
 [ -d "$toolbox_scripts" ] && export PATH="$PATH:$toolbox_scripts"
 unset toolbox_scripts

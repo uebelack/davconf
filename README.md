@@ -3,13 +3,30 @@
 My machine configuration, in modules. Run `./update.sh` to set a machine up,
 and again whenever you want it back in sync with this repo.
 
+Two kinds of machine run it. The Macs get everything. The Ubuntu box is
+headless and reached only over ssh, so it gets the modules that mean something
+without a screen — packages, zsh, Neovim — and the rest are not attempted. One
+repo, one command, and `update.sh` works out which machine it is on.
+
 ## Setup, and keeping machines in sync
+
+On a Mac:
 
 ```sh
 git clone git@github.com:uebelack/davconf.git ~/davconf
 cd ~/davconf
 ./update.sh              # core setup
 ./brew/update.sh --list  # then pick this machine's package profiles
+```
+
+On Ubuntu, over ssh — no profiles to pick, `apt/Packages` is the whole list:
+
+```sh
+sudo apt-get install -y git
+git clone https://github.com/uebelack/davconf.git ~/davconf
+cd ~/davconf
+./update.sh
+chsh -s "$(command -v zsh)"   # Ubuntu's default shell is bash
 ```
 
 Then fill in `~/.zshrc.local` and open a new shell.
@@ -47,6 +64,13 @@ The background run has no terminal, so anything needing a password fails rather
 than hanging — a cask that wants `sudo` will show up in the log as an error.
 Run `./update.sh` by hand to deal with those.
 
+On Ubuntu that applies to the whole package step, since `apt-get install` needs
+root. `apt/update.sh` uses `sudo -n`, which succeeds from a still-valid sudo
+timestamp or a `NOPASSWD` rule and otherwise does not ask; when it cannot, the
+run reports what is missing instead of installing it and says so. Either give
+the account a password-free sudo or run `./update.sh` by hand now and again —
+the config half of the run updates itself regardless.
+
 The pull runs on every invocation — config committed on another machine reaches
 this one no other way, so a quietly skipped pull is how a machine goes stale
 without anyone noticing. It is `--ff-only`, which is what makes running it
@@ -73,27 +97,37 @@ brew trust --tap arthur-ficial/tap
 
 ## Modules
 
-| Module      | What it does                                             |
-| ----------- | -------------------------------------------------------- |
-| `update.sh` | Pulls this repo, then runs every module below, in order    |
-| `brew/`     | Homebrew itself, plus per-machine package profiles         |
-| `jenv/`     | Registers every installed JDK with jenv                    |
-| `zsh/`      | oh-my-zsh, spaceship prompt, plugins, `.zshrc` + `.zprofile` |
-| `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      |
-| `nvim/`     | The Neovim config — lazy.nvim and its plugins, linked into `~/.config` |
-| `karabiner/`| Makes caps lock AeroSpace's leader, which AeroSpace cannot  |
-| `aerospace/`| The AeroSpace window manager config, linked into `$HOME`    |
-| `chrome/`   | The Synthwave '85 Chrome theme, and how to load it          |
-| `vscode/`   | The Synthwave '85 theme for VS Code and Cursor              |
-| `intellij/` | The Synthwave '85 theme for the JetBrains IDEs              |
-| `mac/`      | macOS system defaults — the settings a fresh Mac gets wrong |
+| Module      | What it does                                             | Where |
+| ----------- | -------------------------------------------------------- | ----- |
+| `update.sh` | Pulls this repo, then runs every module below, in order    | both |
+| `brew/`     | Homebrew itself, plus per-machine package profiles         | macOS |
+| `apt/`      | The apt packages for the headless Ubuntu box               | Ubuntu |
+| `jenv/`     | Registers every installed JDK with jenv                    | both |
+| `zsh/`      | oh-my-zsh, spaceship prompt, plugins, `.zshrc` + `.zprofile` | both |
+| `nvim/`     | The Neovim config — lazy.nvim and its plugins, linked into `~/.config` | both |
+| `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      | macOS |
+| `karabiner/`| Makes caps lock AeroSpace's leader, which AeroSpace cannot  | macOS |
+| `aerospace/`| The AeroSpace window manager config, linked into `$HOME`    | macOS |
+| `chrome/`   | The Synthwave '85 Chrome theme, and how to load it          | macOS |
+| `vscode/`   | The Synthwave '85 theme for VS Code and Cursor              | macOS |
+| `intellij/` | The Synthwave '85 theme for the JetBrains IDEs              | macOS |
+| `mac/`      | macOS system defaults — the settings a fresh Mac gets wrong | macOS |
 
 Every module runs even when an earlier one fails: a third-party tap breaking
 upstream should not stop the shell, terminal, browser and macOS settings from
 being updated. The failures are named at the end and the run still exits
 non-zero, so nothing is swallowed.
 
+The macOS-only modules are not skipped by each script checking `uname` for
+itself — `update.sh` decides it once, in one place, and ends the run after
+`nvim/`. A terminal emulator, a window manager, a keyboard remapper and four
+editor colour schemes are nothing at all on a machine reached over ssh, so
+there is nothing to symlink and no file on that machine will ever read them.
+
 ### brew
+
+macOS. The Ubuntu box uses `apt/` below instead, and `brew/update.sh` run by
+hand there says so rather than installing Linuxbrew.
 
 `brew/update.sh` installs Homebrew first if the machine does not have it.
 Packages live in [Brewfiles](https://docs.brew.sh/Brew-Bundle-and-Brewfile),
@@ -204,25 +238,106 @@ an app bundle — `temurin`, for one. Those run Apple's installer against `/` an
 ask for an admin password no matter where `--appdir` points, so on a locked-down
 machine they have to come from somewhere else.
 
+### apt
+
+The Ubuntu side of `brew/`. `apt/update.sh` installs everything named in
+`apt/Packages` and leaves what is already there alone.
+
+```sh
+./apt/update.sh            # install anything missing
+./apt/update.sh --list     # what the file asks for, and what is installed
+./apt/update.sh --check    # report what is missing, install nothing
+./apt/update.sh --upgrade  # also upgrade every outdated package
+```
+
+**One file, no profiles.** The Macs are three different kinds of machine, which
+is what the Brewfile profiles are for; the Ubuntu box is one machine used one
+way, so there is nothing to select between. `./update.sh dev cloud` on it says
+so and carries on — the flags are shared because the daily auto-update passes
+one command line to whichever package module the machine has, and `--check` and
+`--upgrade` mean the same thing on both.
+
+The format is a Brewfile's, minus everything that needs a GUI:
+
+```
+ppa:neovim-ppa/stable    # a PPA to add first — Ubuntu only
+neovim                   # an apt package
+# comment, or a trailing one
+```
+
+Nothing in the file needs a display. That is not a restriction so much as what
+is left: the Mac side of this repo is largely about the things *around* the
+terminal — Ghostty, AeroSpace, Karabiner, four editor themes — and none of it
+has a counterpart on a machine you only ssh into. The shell, the editor and the
+toolchains do.
+
+A few details the file explains in place, worth repeating:
+
+- **Neovim comes from a PPA, not the archive.** `nvim/config` uses
+  `vim.lsp.config()`, which is Neovim 0.11; Ubuntu ships 0.9 in 24.04 and 0.10
+  in 25.04. `ppa:neovim-ppa/stable` is the fix, and
+  `ppa:neovim-ppa/unstable` is there if that one ever falls behind too.
+- **The JDKs are the `-headless` packages.** The full `openjdk-*-jdk` drags in
+  AWT, Swing and the X libraries behind them, and nothing on this machine draws
+  a window. jdtls needs 21 to run, whatever a project targets.
+- **`fd` is called `fdfind` on Debian**, because `fd` was already taken. Telescope
+  looks for `fd` and silently falls back to something much slower, so
+  `apt/update.sh` links `~/.local/bin/fd` at it — and only when there is no real
+  `fd` to shadow.
+- **A compiler is not optional.** nvim-treesitter builds every parser from C
+  source on the machine it runs on, so without `build-essential` the editor comes
+  up with no highlighting and an error per language. The `lib*-dev` block is the
+  rest of that: pyenv compiles each Python and quietly produces one with no ssl
+  module or no readline in the REPL when a header is missing.
+- **Packages are installed with `--no-install-recommends`.** On a machine with no
+  display the recommends of an innocent-looking package are how X11, a sound
+  server and a font cache arrive. Anything actually needed is named in the file
+  instead.
+
+A package missing from this machine's release — `lazygit` before 25.04, for
+instance — is reported by name at the end of the run rather than failing it.
+Releases differ in what they carry, and that is worth seeing rather than
+guessing at.
+
+The bottom of `apt/Packages` lists what is in the Brewfiles but has no apt
+package worth having — nvm, pyenv, jenv, `gh`, `tenv`, the AWS v2 CLI, ollama —
+with the one-line install for each. `zsh/zshrc` already guards every one of
+them, so the shell works whether or not they are there.
+
+`apt-get upgrade --with-new-pkgs` rather than `dist-upgrade`: this runs
+unattended, and `dist-upgrade` may remove a package to resolve a conflict.
+`--with-new-pkgs` is the part worth having — without it, a package whose new
+version needs a new dependency is held back and reported as outdated for ever.
+Nothing is ever removed, `autoremove` included: that is a thing to do by hand,
+while looking.
+
 ### jenv
 
-Homebrew installs JDKs and tells jenv about none of them, in two different
-shapes: casks land in `/Library/Java/JavaVirtualMachines`, formulae in
-`$(brew --prefix)/opt/openjdk*/libexec` where even `java_home -V` cannot see
-them. `jenv/update.sh` finds both and registers whatever is missing.
+JDKs land in three different shapes depending on what installed them, and jenv
+is told about none of them: macOS casks in `/Library/Java/JavaVirtualMachines`,
+brew formulae in `$(brew --prefix)/opt/openjdk*/libexec` where even
+`java_home -V` cannot see them, and the apt packages in `/usr/lib/jvm`.
+`jenv/update.sh` finds all three and registers whatever is missing.
 
 ```sh
 ./jenv/update.sh           # add any JDK jenv does not know yet
 ./jenv/update.sh --check   # list what would be added, add nothing
 ```
 
-It runs straight after `brew/update.sh`, so a JDK a Brewfile just installed is
-selectable in the same run. Already-registered JDKs are left alone, so it is
-safe to run repeatedly.
+It runs straight after the package module, so a JDK a Brewfile or
+`apt/Packages` just installed is selectable in the same run. Already-registered
+JDKs are left alone, so it is safe to run repeatedly.
 
 Formula JDKs are registered by their stable `opt/` path rather than the Cellar
 directory it resolves to — the Cellar path has the version number in it and
-disappears on the next upgrade, which would leave jenv pointing at nothing.
+disappears on the next upgrade, which would leave jenv pointing at nothing. The
+apt paths need no such care, since apt replaces a JDK's contents in place.
+
+`/usr/lib/jvm` does hold symlinks beside the real JDKs, though — `default-java`,
+and a `java-1.21.0-openjdk-amd64` pointing at `java-21-openjdk-amd64` — so the
+same JDK turns up two or three times under different names. They are matched on
+the resolved path, which is what keeps jenv from ending up with three names for
+one JDK.
 
 ### zsh
 
@@ -464,9 +579,12 @@ The one plugin configured so far, under `<leader>f` with space as the leader:
 | `<leader>fb` | Open buffers              |
 | `<leader>fh` | Help tags                 |
 
-`ripgrep` and `fd` are in `Brewfile.common` for this and are not optional
-extras. Telescope shells out to them; without them it falls back to `grep` and
-`find` and feels broken on any repo big enough to want a fuzzy finder for.
+`ripgrep` and `fd` are in `Brewfile.common` and `apt/Packages` for this and are
+not optional extras. Telescope shells out to them; without them it falls back to
+`grep` and `find` and feels broken on any repo big enough to want a fuzzy finder
+for. On Debian and Ubuntu the fd binary is called `fdfind`, because `fd` was
+already taken in the archive — `apt/update.sh` links `~/.local/bin/fd` at it, so
+Telescope finds what it is looking for.
 `find_files` is set to show dotfiles — in a config repo, hiding them hides most
 of what you are looking for — with `.git/` still excluded.
 
@@ -1068,8 +1186,8 @@ away. They are drawn by `chrome/theme-art.py` — stdlib only, no Pillow — whi
 ## Terminal greeting
 
 Every new terminal opens with a Synthwave '85 sun and a panel of vitals:
-weather, uptime, free disk, battery, outdated Homebrew packages, and how long
-ago this machine last updated itself.
+weather, uptime, free disk, battery, outdated packages, and how long ago this
+machine last updated itself.
 
 ```
       ▄▄▄▄▀▀▀▀▀▀▀▀▀▀▄▄▄▄        DAVCONF · SYNTHWAVE '85
@@ -1084,10 +1202,17 @@ ago this machine last updated itself.
 ──────────────┼──────────────   Hack the planet.
 ```
 
-Startup stays fast (~20ms): weather and the Homebrew check are read from cache
-files and refreshed in a detached background job, so nothing networked ever
-runs while you wait for a prompt. A value that has never been fetched shows
-`…` rather than a guess. Tune it in `~/.zshrc.local`:
+Two of those lines read differently per platform, since the thing they report
+on is different. The package line is labelled `BREW` on a Mac and `APT` on
+Ubuntu, counting `brew outdated` or `apt list --upgradable` — cached under its
+own name either way, so a count can never be read back from the other
+platform's file. `POWER` is `pmset` on a Mac and `/sys/class/power_supply` on
+Linux, which on a desktop with no battery honestly reports `AC power`.
+
+Startup stays fast (~20ms): the weather and the package check are read from
+cache files and refreshed in a detached background job, so nothing networked
+ever runs while you wait for a prompt. A value that has never been fetched
+shows `…` rather than a guess. Tune it in `~/.zshrc.local`:
 
 ```sh
 DAVCONF_GREETING=0                 # no greeting
@@ -1112,6 +1237,15 @@ The shell config is split three ways by how shareable each part is:
 
 `zsh/zshrc` sources the other two if they exist, so a machine missing either
 still gets a working shell.
+
+"Same on every machine" survives two platforms because almost nothing in those
+files is platform-specific to begin with: every tool is reached through a
+`command -v` guard, so a machine without it gets a shell that simply does not
+mention it. What is left is a short list of genuine differences, each branched
+in place and commented — `flushdns` (mDNSResponder vs systemd-resolved), pnpm's
+global store (`~/Library/pnpm` vs the XDG data directory), the Android SDK and
+`fvm` paths, Homebrew's openssl keg, and the cask `--appdir` logic, which is
+macOS-only by definition. Everything else is one file read by both.
 
 ## Secrets
 

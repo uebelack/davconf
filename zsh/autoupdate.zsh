@@ -8,7 +8,9 @@
 #   DAVCONF_AUTO_UPDATE=0          disable entirely
 #   DAVCONF_UPDATE_INTERVAL=86400  seconds between runs
 #   DAVCONF_UPDATE_PROFILES="dev cloud"     override the machine's brew profiles
-#                                  (normally ~/.config/davconf/profiles)
+#                                  (normally ~/.config/davconf/profiles; macOS
+#                                  only — apt/Packages has no profiles and
+#                                  apt/update.sh says so and carries on)
 #   DAVCONF_UPDATE_UPGRADE=0       install what is missing, upgrade nothing
 #
 # State lives in ${XDG_STATE_HOME:-~/.local/state}/davconf:
@@ -69,13 +71,15 @@ _davconf_autoupdate() {
   : >| $stamp
 
   # Normally empty: brew/update.sh reads the machine's own selection from
-  # ~/.config/davconf/profiles. Set the variable only to override it.
+  # ~/.config/davconf/profiles. Set the variable only to override it. Nothing
+  # to override on the Linux box, where apt/Packages is the whole list.
   local -a profiles
   profiles=( ${=DAVCONF_UPDATE_PROFILES:-} )
 
   # Upgrade outdated packages too, so the count in the greeting trends to zero
-  # instead of growing forever. Set DAVCONF_UPDATE_UPGRADE=0 to only install
-  # what is missing.
+  # instead of growing forever. Understood by both package modules, which is
+  # why update.sh can forward one command line to either. Set
+  # DAVCONF_UPDATE_UPGRADE=0 to only install what is missing.
   local -a extra
   [[ ${DAVCONF_UPDATE_UPGRADE:-1} == 1 ]] && extra=( --upgrade )
 

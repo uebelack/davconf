@@ -2,16 +2,22 @@
 #
 # Bring this machine up to date with the config in this repo.
 #
-#   ./update.sh                 # Homebrew + this machine's packages + zsh
-#                               #   + the Ghostty config + the Chrome theme
-#                               #   + the macOS system tweaks
+#   ./update.sh                 # packages + zsh + the editor, then — on a Mac —
+#                               #   the terminal, window manager and themes and
+#                               #   the macOS system tweaks
 #   ./update.sh dev cloud       # …with the named brew profiles instead of
 #                               #   the ones in ~/.config/davconf/profiles
+#                               #   (macOS only; apt/Packages has no profiles)
 #   ./update.sh --no-pull       # skip the git pull (escape hatch, see below)
 #
 # Safe to run any time: every step is idempotent, so the first run on a new
 # machine installs everything and later runs only apply what has changed.
 # zsh/autoupdate.zsh runs this once a day in the background.
+#
+# Two kinds of machine run this. The Macs get everything. The Ubuntu box is
+# headless and reached only over ssh, so it gets the modules that make sense
+# without a screen — packages, zsh, Neovim — and nothing else is even
+# attempted. See the module section at the bottom for which is which.
 #
 # The git pull always runs. Config committed on another machine only reaches
 # this one through it, so a quietly skipped pull leaves the machine silently
@@ -23,6 +29,7 @@
 
 set -euo pipefail
 DAVCONF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OS="$(uname -s)"
 
 info() { printf '\033[1;34m==>\033[0m %s\n' "$1"; }
 warn() { printf '\033[1;33m==>\033[0m %s\n' "$1"; }
@@ -97,8 +104,18 @@ run_module() {
   failed="$failed$name "
 }
 
-# Installs Homebrew first if this machine does not have it yet.
-run_module brew ${args+"${args[@]}"}
+# Packages first: every module below configures something these install.
+#
+# Which package manager is a fact about the machine rather than a choice, so
+# this is a branch and not a flag. brew/update.sh installs Homebrew itself if
+# the Mac does not have it yet; apt/update.sh takes apt as given, which on
+# Ubuntu it is. Both accept the same flags — --check, --upgrade — which is what
+# lets the daily auto-update pass one command line to either of them.
+if [ "$OS" = Darwin ]; then
+  run_module brew ${args+"${args[@]}"}
+else
+  run_module apt ${args+"${args[@]}"}
+fi
 
 # brew/update.sh runs in its own process, so a Homebrew it just installed is
 # not on our $PATH. Load it here too, or zsh/update.sh would not find brew.
@@ -108,21 +125,40 @@ if ! command -v brew >/dev/null; then
   done
 fi
 
-# Straight after brew: a JDK a Brewfile just installed is registered with jenv
-# in the same run, rather than sitting on disk unusable until noticed.
+# Straight after the packages: a JDK a Brewfile or apt/Packages just installed
+# is registered with jenv in the same run, rather than sitting on disk unusable
+# until noticed.
 run_module jenv
 
 run_module zsh
+
+# The editor. Links the config and installs any plugin lazy.nvim is missing; it
+# never updates the ones already there, so an unattended daily run cannot move
+# them underneath a working machine.
+run_module nvim
+
+# --- macOS only --------------------------------------------------------------
+# Everything from here needs a screen in front of the machine. A terminal
+# emulator, a window manager, a keyboard remapper and four editor colour
+# schemes are all nothing at all on a box reached over ssh — so on anything
+# that is not a Mac the run ends here rather than symlinking configs no
+# process on that machine will ever read.
+#
+# mac/update.sh checks `uname` for itself as well; the others do not, and this
+# is the single place that decides it for all of them.
+if [ "$OS" != Darwin ]; then
+  if [ "$failed" != " " ]; then
+    warn "Finished with failures in:$failed"
+    exit 1
+  fi
+  info "Not macOS — the terminal, window manager, theme and system modules do not apply."
+  exit 0
+fi
 
 # Terminal configuration. Just a symlink, so it is cheap and cannot fail in a
 # way that matters — but it goes after zsh, since the two are read together the
 # next time a terminal opens.
 run_module ghostty
-
-# The editor that lives in that terminal. Links the config and installs any
-# plugin lazy.nvim is missing; it never updates the ones already there, so an
-# unattended daily run cannot move them underneath a working machine.
-run_module nvim
 
 # The leader key AeroSpace itself cannot provide: fn is not one of its four
 # modifiers and never reaches it, so Karabiner turns fn+key into cmd+ctrl+alt+key

@@ -90,6 +90,17 @@ if [ "$mode" = list ]; then
   exit 0
 fi
 
+# Not a Mac and no Homebrew already here: this is the Ubuntu box, and
+# installing Linuxbrew on it is not the answer — apt/ is. update.sh never calls
+# this module there; the guard is for running it by hand.
+#
+# A Linux machine that *does* have brew is left to use it, since somebody put it
+# there on purpose.
+if [ "$(uname -s)" != Darwin ] && ! command -v brew >/dev/null; then
+  info "Not macOS and no Homebrew here — use ./apt/update.sh instead."
+  exit 0
+fi
+
 if ! command -v brew >/dev/null; then
   info "Installing Homebrew"
   NONINTERACTIVE=1 /bin/bash -c \
