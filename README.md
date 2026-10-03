@@ -299,6 +299,27 @@ instance — is reported by name at the end of the run rather than failing it.
 Releases differ in what they carry, and that is worth seeing rather than
 guessing at.
 
+**One bad entry costs that entry and nothing else.** The install is a single
+`apt-get` call, because that is how apt is meant to be used — it resolves the
+whole set together. The catch is that it resolves it as *one transaction*, so a
+package it cannot satisfy refuses the other twenty-five along with it. That is
+not theoretical: `docker.io` on a machine that already had Docker's own
+`containerd.io` refused the entire set, and a run that looked like it was
+installing twenty-six packages installed none. So when the batch is refused,
+`apt/update.sh` retries one package at a time to find out which ones are
+actually the problem, prints each failure's reason under its name, and names
+them together at the end. The retry only ever runs after a failure, so the
+normal case still costs a single `apt-get`.
+
+Docker is the reason that matters, and the reason it is *not* in `apt/Packages`.
+Ubuntu packages it as `docker.io`, which depends on `containerd`; Docker's own
+repo packages it as `docker-ce`, which brings `containerd.io`, and that declares
+a conflict with `containerd`. The two packagings are mutually exclusive, and
+Docker's own is the better of them — Ubuntu's runs a release or two behind, and
+compose is a plugin there rather than a `docker-compose-v2` package. So the file
+leaves Docker alone and the bottom of it points at
+[Docker's install docs](https://docs.docker.com/engine/install/ubuntu/).
+
 The bottom of `apt/Packages` lists what is in the Brewfiles but has no apt
 package worth having — nvm, pyenv, jenv, `gh`, `tenv`, the AWS v2 CLI, ollama —
 with the one-line install for each. `zsh/zshrc` already guards every one of

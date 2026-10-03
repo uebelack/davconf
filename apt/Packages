@@ -100,18 +100,18 @@ rbenv
 ffmpeg
 unixodbc   # ODBC driver manager, for the SQL Server clients
 
-# Docker. The Macs install the CLI from Homebrew and the daemon from the
-# docker-desktop cask; here there is no desktop to install, so docker.io is
-# both. Ubuntu's build rather than Docker's own apt repo: it is a release or
-# two behind and that has never mattered for running containers locally.
-docker.io
-docker-compose-v2
+# No docker here, deliberately — see the note at the bottom. The two ways to
+# install Docker on Ubuntu cannot coexist, and this machine already has the
+# other one.
 
 # --- not from apt -----------------------------------------------------------
 # These are in the Brewfiles but have no apt package worth having, and each one
 # installs itself somewhere zsh/zshrc already looks. Run them once by hand;
 # nothing here depends on them being present.
 #
+#   docker   Docker's own apt repo — see docs.docker.com/engine/install/ubuntu
+#   lazygit  the .deb from github.com/jesseduffield/lazygit/releases, on a
+#            release that does not carry the package yet
 #   nvm      curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
 #   pyenv    curl -fsSL https://pyenv.run | bash
 #   jenv     git clone https://github.com/jenv/jenv.git ~/.jenv
@@ -123,3 +123,15 @@ docker-compose-v2
 #
 # And these are macOS-only, with no Linux counterpart to install: swiftformat,
 # apfel (Apple FoundationModels), and every cask in the Brewfiles.
+#
+# Docker is the one that cannot simply be listed above. Ubuntu packages it as
+# docker.io, which depends on containerd; Docker's own repo packages it as
+# docker-ce, which brings containerd.io, and containerd.io declares a conflict
+# with containerd. So the two are mutually exclusive, and apt cannot resolve a
+# set containing docker.io on a machine that already has containerd.io — it
+# refuses the whole transaction rather than that one package.
+#
+# Docker's own repo is also the better of the two: Ubuntu's build runs a
+# release or two behind, and compose is a plugin there rather than the
+# docker-compose-v2 package. So this file leaves Docker alone. Check what a
+# machine has with `docker version` before adding either.

@@ -251,18 +251,45 @@ fi
 trap 'rm -f "$STATE_DIR/cache-apt-outdated"' EXIT
 
 # --- install ----------------------------------------------------------------
-# One apt-get call rather than one per package: apt resolves the whole set
-# together, which is both faster and how it avoids half-installing a group with
-# a shared dependency.
+# One apt-get call for the whole set, because that is how apt is meant to be
+# used: it resolves the set together, which is both faster and how it avoids
+# half-installing a group that shares a dependency.
+#
+# The catch is that apt resolves it as one transaction, so a single package it
+# cannot satisfy refuses the other twenty-five along with it. That is not a
+# theoretical risk — docker.io on a machine that already has Docker's own
+# containerd.io is exactly it, and the whole run installed nothing. One bad
+# entry must cost that entry and nothing else, which is the same rule the rest
+# of this repo already follows for a failing module or brew profile.
+#
+# So: batch first, and only if that is refused, retry one at a time to find out
+# which ones are actually the problem. The retry is the slow path and only ever
+# runs after a failure, so the normal case still costs a single apt-get.
 failed=no
+refused=()
 if [ ${#missing[@]} -eq 0 ]; then
   info "All packages present"
 else
   info "Installing ${#missing[@]} package(s)"
   printf '    %s\n' "${missing[*]}"
   if ! apt_get install -y --no-install-recommends "${missing[@]}"; then
-    warn "apt-get install failed — continuing"
-    failed=yes
+    warn "apt refused the set as a whole — retrying one package at a time"
+    for p in "${missing[@]}"; do
+      # Output is captured rather than shown, because the point of this pass is
+      # which package is the problem, not twenty-five successful apt logs. The
+      # ones that fail print their own reason underneath, indented.
+      if out="$(apt_get install -y --no-install-recommends "$p" 2>&1)"; then
+        printf '    %-32s \033[1;32minstalled\033[0m\n' "$p"
+      else
+        printf '    %-32s \033[1;31mfailed\033[0m\n' "$p"
+        printf '%s\n' "$out" | sed -n '/^The following packages have unmet dependencies/,$p' | sed 's/^/        /'
+        refused+=("$p")
+      fi
+    done
+    if [ ${#refused[@]} -gt 0 ]; then
+      warn "Could not install: ${refused[*]}"
+      failed=yes
+    fi
   fi
 fi
 
