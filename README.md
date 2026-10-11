@@ -501,6 +501,55 @@ both, so leave that one absent — settings split across the two are the kind of
 thing that takes an afternoon to debug. Check what Ghostty actually ended up
 with using `ghostty +show-config`.
 
+#### Terminals over ssh
+
+`ghostty/config` enables Ghostty's `ssh-terminfo` integration. Ghostty calls
+itself `xterm-ghostty`, which no machine's ncurses has heard of, so on every ssh
+it copies its own terminfo entry to the host — into **that user's**
+`~/.terminfo`, since it has no reason to assume anything else.
+
+Which means the entry belongs to the account you ssh *as*, and only that one.
+Switch user on the far side and it is gone:
+
+```
+david@schizo:~$ ls          # fine
+david@schizo:~$ sudo su -
+root@schizo:~# ls
+llss
+```
+
+`su` and `sudo` both pass `TERM` through, so the terminal is still called
+`xterm-ghostty`; `$HOME` is now `/root`, so the file explaining what that means
+is no longer on the search path. With nothing to draw with, zle re-emits what
+you typed instead of repositioning the cursor — every character doubles and the
+prompt's colours scramble. Readline does exactly the same, so root running bash
+is no better off. To confirm it is this and not something else:
+
+```sh
+echo $TERM                       # xterm-ghostty, as both users
+infocmp -1 "$TERM" >/dev/null && echo found || echo MISSING
+```
+
+The fix is one system-wide copy of the entry, which every user then finds. Run
+it **as the account that has the entry** — `infocmp` cannot dump what the broken
+account cannot see:
+
+```sh
+# on the remote machine, as david
+infocmp -x xterm-ghostty | sudo tic -x -o /etc/terminfo -
+```
+
+`/etc/terminfo` rather than `/usr/share/terminfo`: Debian searches both, and the
+former is the one for locally added entries, so an `ncurses-base` upgrade cannot
+remove it. Nothing needs restarting — the next shell reads it.
+
+`zsh/zshrc` also degrades rather than leaving you with a shell that cannot draw
+its own input line. When `$TERM` has no entry at all it says so and falls back
+to `xterm-256color`, which is in `ncurses-base` everywhere and costs only
+capabilities nothing here uses. The test is "no entry at all" and not "missing
+some capability", deliberately: `TERM=dumb` legitimately has no cursor-up, and
+an editor's shell-mode that asked for `dumb` has to keep getting it.
+
 ### nvim
 
 `nvim/update.sh` links `~/.config/nvim` to `nvim/config` in this repo, then

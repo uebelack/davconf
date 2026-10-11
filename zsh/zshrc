@@ -14,6 +14,43 @@
 # Needed this early because the prompt config below is sourced before oh-my-zsh.
 davconf_dir=${${(%):-%x}:A:h}
 
+# ----------------------------------------------------------------------- term
+# zle draws the command line out of the terminfo capabilities for the current
+# $TERM. With no entry for it there is nothing to draw with, and the redraw
+# degrades into re-emitting what you typed — `ls` comes back as `llss`, and the
+# prompt's colours scramble along with it. Readline does the same thing, so bash
+# is no better off.
+#
+# This is a remote-machine problem, and it hits exactly one user per machine.
+# ghostty/config enables Ghostty's ssh-terminfo integration, which installs its
+# xterm-ghostty entry on the host you ssh into — into *that user's*
+# ~/.terminfo, since it has no reason to assume root. `sudo su -` then keeps
+# $TERM (su and sudo both pass it through) and changes $HOME, so the terminal
+# is still called xterm-ghostty and the file explaining what that means is no
+# longer on the search path.
+#
+# The real fix is a system-wide entry, which the README spells out. This is the
+# fallback, because a shell that cannot draw its own input line is too broken to
+# leave as a diagnosis: xterm-256color is in ncurses-base on every machine, and
+# what it costs against xterm-ghostty is capabilities nothing here uses.
+#
+# The test is "no entry at all" rather than "missing some capability", and the
+# difference matters: `TERM=dumb` legitimately has no cursor-up, and an editor's
+# shell-mode that asked for dumb must keep getting dumb. An empty $terminfo is
+# the real signal, and reading it costs no fork — the array comes from zsh's own
+# module, not from infocmp.
+if [[ -n $TERM ]]; then
+  zmodload -i zsh/terminfo 2>/dev/null
+  if (( ${#terminfo} == 0 )); then
+    # Deliberately not a command to copy: the entry cannot be dumped from the
+    # account that cannot see it, so the useful instruction depends on where a
+    # copy actually exists. That is a paragraph, and it is in the README.
+    print -u2 "davconf: no terminfo entry for '$TERM' — using xterm-256color instead."
+    print -u2 "         to fix it for every user here, see \"Terminals over ssh\" in the davconf README."
+    export TERM=xterm-256color
+  fi
+fi
+
 export PATH="$HOME/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"
 
 export PATH="$HOME/.rbenv/bin:$PATH"
