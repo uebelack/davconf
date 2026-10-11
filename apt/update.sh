@@ -220,17 +220,50 @@ if [ ${#ppas[@]} -gt 0 ]; then
   fi
 fi
 
-# --- what is missing --------------------------------------------------------
+# --- what is missing, and what is stale -------------------------------------
+# "Installed" is not the same as "fine", and conflating the two hides the one
+# failure this file's PPA exists to prevent. Neovim is the case: the archive
+# carries a version this config cannot run on, so apt/Packages adds a PPA with a
+# newer one — but a machine that already has the archive build is "installed",
+# gets skipped, and keeps the Neovim that does not work. Nothing says so,
+# because nothing was looking.
+#
+# So an installed package whose candidate is newer is collected and named.
+# It is reported rather than upgraded: moving packages underneath a working
+# machine on an unattended run is the thing this repo consistently refuses to
+# do, and --upgrade is how you ask for it on purpose. The point here is that it
+# stops being invisible.
 missing=()
 unavailable=()
+outdated_pkgs=()
 for p in ${packages[@]+"${packages[@]}"}; do
-  [ -n "$(installed_version "$p")" ] && continue
-  if [ -n "$(candidate_version "$p")" ]; then
+  inst="$(installed_version "$p")"
+  cand="$(candidate_version "$p")"
+  if [ -n "$inst" ]; then
+    # No candidate at all means the package is installed but no longer offered
+    # by any configured repo — nothing to compare against, and not a problem.
+    if [ -n "$cand" ] && [ "$cand" != "$inst" ]; then
+      outdated_pkgs+=("$(printf '%-32s %s -> %s' "$p" "$inst" "$cand")")
+    fi
+    continue
+  fi
+  if [ -n "$cand" ]; then
     missing+=("$p")
   else
     unavailable+=("$p")
   fi
 done
+
+# Printed in both modes, before anything is installed: on a run that is about to
+# fix something, this is the part that is not going to be fixed.
+report_outdated() {
+  [ ${#outdated_pkgs[@]} -eq 0 ] && return 0
+  warn "Installed, but a newer version is available:"
+  printf '    %s\n' "${outdated_pkgs[@]}"
+  # Pointless advice during a run that is already upgrading them.
+  [ "$upgrade" = no ] && warn "Upgrade them with: ./apt/update.sh --upgrade"
+  return 0
+}
 
 if [ "$mode" = check ]; then
   info "Checking $(basename "$PACKAGES_FILE")"
@@ -242,8 +275,11 @@ if [ "$mode" = check ]; then
   for p in ${unavailable[@]+"${unavailable[@]}"}; do
     printf '    %-32s \033[1;31mnot in this release\033[0m\n' "$p"
   done
+  report_outdated
   exit 0
 fi
+
+report_outdated
 
 # The greeting caches the upgradable count. Drop it however this script exits,
 # including part-way through, so the next terminal never reports a figure from

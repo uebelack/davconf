@@ -100,6 +100,65 @@ else
   fi
 fi
 
+# --- version -----------------------------------------------------------------
+# This configuration is not version-agnostic and cannot be made so. lsp.lua
+# builds on vim.lsp.config(), which arrived in 0.11; before 0.8, vim.cmd is a
+# plain function rather than a callable table, so init.lua itself fails on
+# `vim.cmd.colorscheme`. Both of those are errors in Lua at startup, and what
+# you get is a traceback pointing into this repo — which reads as the config
+# being broken rather than the binary being too old.
+#
+# So check it here and say the one thing worth saying. Nothing below is skipped
+# on account of it: the config is linked either way, because the config is not
+# what is wrong and a newer nvim will find it already in place.
+NVIM_MIN=0.11.0
+
+nvim_version() {
+  # `NVIM v0.11.5`, or `NVIM v0.12.0-dev-1234+gabc` on a nightly — take the
+  # three numbers and ignore whatever the build appends.
+  nvim --version 2>/dev/null | head -1 |
+    sed -E 's/^NVIM v?([0-9]+(\.[0-9]+){0,2}).*/\1/' || true
+}
+
+# True when A is older than B. Field by field as integers, rather than with
+# `sort -V`: BSD sort — the one on the Macs — does not have it. A missing field
+# counts as 0, so "0.11" and "0.11.0" compare equal.
+version_lt() {
+  local IFS=. i x y
+  local -a av bv
+  av=($1) bv=($2)
+  for i in 0 1 2; do
+    # Strip anything non-numeric a pre-release suffix left behind ("0-dev"),
+    # which would otherwise make -lt fail rather than compare.
+    x="${av[i]:-0}"; y="${bv[i]:-0}"
+    x="${x%%[^0-9]*}"; y="${y%%[^0-9]*}"
+    [ "${x:-0}" -lt "${y:-0}" ] && return 0
+    [ "${x:-0}" -gt "${y:-0}" ] && return 1
+  done
+  return 1
+}
+
+nvim_too_old=no
+if command -v nvim >/dev/null; then
+  info "Checking the Neovim version"
+  have="$(nvim_version)"
+  if [ -z "$have" ]; then
+    warn "could not read a version out of \`nvim --version\` — assuming it is new enough."
+  elif version_lt "$have" "$NVIM_MIN"; then
+    nvim_too_old=yes
+    warn "Neovim $have is too old for this config, which needs $NVIM_MIN or newer."
+    warn "Until it is upgraded, nvim will fail at startup with a Lua traceback"
+    warn "pointing into nvim/config — the config is fine, the binary is not."
+    case "$(uname -s)" in
+      Darwin) warn "  brew upgrade neovim" ;;
+      *)      warn "  check apt/Packages — Neovim comes from a PPA there, because"
+              warn "  Ubuntu's own build is far too old. See the README." ;;
+    esac
+  else
+    printf '    %-24s %s\n' "nvim" "$have"
+  fi
+fi
+
 # --- plugins -----------------------------------------------------------------
 # `Lazy! install` only clones what is missing, at the commit in lazy-lock.json
 # when there is one. It deliberately does not update: this runs unattended once
@@ -111,10 +170,20 @@ if [ "$mode" = check ]; then
 fi
 
 if ! command -v nvim >/dev/null; then
-  # First run on a fresh machine reaches here before brew has finished, or on
-  # a machine that skipped it. Not a failure — the next run picks it up.
+  # First run on a fresh machine reaches here before the package module has
+  # finished, or on a machine that skipped it. Not a failure — the next run
+  # picks it up.
   info "nvim is not installed yet — plugins will be installed on the next run."
   exit 0
+fi
+
+# Running the plugin install against a too-old nvim buys a second copy of the
+# same traceback and no plugins, so skip it and let the warning above stand as
+# the result. Non-zero, because unlike a missing nvim this does not fix itself
+# on the next run: update.sh names it at the end rather than looking clean.
+if [ "$nvim_too_old" = yes ]; then
+  warn "Skipping the plugin install until Neovim is new enough."
+  exit 1
 fi
 
 info "Installing Neovim plugins"

@@ -561,6 +561,25 @@ first, and a link that already points here is left alone.
 ./nvim/update.sh --check  # report what would change, change nothing
 ```
 
+**This config needs Neovim 0.11 or newer**, and that is not a preference:
+`lua/plugins/lsp.lua` is built on `vim.lsp.config()`, which arrived in 0.11.
+Below 0.8 it does not even get that far — `vim.cmd` is a plain function there
+rather than a callable table, so `init.lua` fails on `vim.cmd.colorscheme`.
+Either way the failure is a Lua traceback pointing into this repo, which reads
+as the config being broken when the binary is what is too old:
+
+```
+E5113: Error while calling lua chunk: …/init.lua:78: attempt to index field 'cmd' (a function value)
+```
+
+So `nvim/update.sh` checks the version and says that in one line instead, and
+skips the plugin install rather than producing a second copy of the same
+traceback. It exits non-zero, deliberately: unlike a missing nvim, a too-old one
+does not fix itself on the next run, so the daily update names it rather than
+looking clean. This is mostly a Linux concern — Homebrew's neovim is current,
+while Ubuntu's archive carries 0.9 in 24.04, 0.6 in 22.04 and 0.4 in 20.04,
+which is why `apt/Packages` takes it from a PPA.
+
 Unlike `ghostty/` and `aerospace/`, this links the whole directory rather than
 a single file. A Neovim config is a tree — `init.lua` plus everything under
 `lua/` — so linking entry by entry would mean editing the script every time a
