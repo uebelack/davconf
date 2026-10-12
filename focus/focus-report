@@ -36,9 +36,30 @@ done
 info() { print -r -- $'\e[1;34m==>\e[0m '"$1" }
 warn() { print -r -- $'\e[1;33m==>\e[0m '"$1" }
 
+# Where this checkout is, for the hint above — the script is reached through a
+# ~/bin symlink, so %x has to be resolved (:A) before taking the directory.
+DAVCONF_HINT=${${(%):-%x}:A:h:h}
+
+# --- is it even running? ----------------------------------------------------
+# Asked first, and always. An empty report has two completely different causes
+# — nothing stole focus, or nothing was watching — and they need different
+# actions. Leaving the reader to guess is the one thing this must not do.
+LABEL=dev.uebelacker.davconf.focus
+if launchctl print "gui/${UID}/$LABEL" >/dev/null 2>&1; then
+  watcher="running"
+else
+  watcher="NOT RUNNING"
+fi
+
 if [[ ! -r $log ]]; then
   warn "No log at $log."
-  warn "Is the watcher running?  launchctl print gui/$UID/dev.uebelacker.davconf.focus"
+  if [[ $watcher == running ]]; then
+    warn "The watcher is loaded but has not written anything yet — it writes on"
+    warn "the first focus change, and a heartbeat every 30 minutes."
+  else
+    warn "The watcher is not loaded. Turn it on with:"
+    warn "  touch ~/.config/davconf/focus-watch && $DAVCONF_HINT/focus/update.sh"
+  fi
   return 1
 fi
 
@@ -51,6 +72,7 @@ if [[ $follow == yes ]]; then
     /^#/ { next }
     {
       verdict = $3
+      if (verdict == "heartbeat" && showall != "yes") next
       if (verdict == "user" && showall != "yes") next
       colour = (verdict == "theft") ? "\033[1;31m" : (verdict == "gap") ? "\033[1;33m" : "\033[0;36m"
       idle = ($4 >= 0) ? sprintf("idle %ds", $4 / 1000) : ""
@@ -75,6 +97,25 @@ if [[ $since != all ]]; then
     print -u2 -- "--since takes 30m, 2h, 7d or 'all' (got: $since)"
     return 2
   fi
+fi
+
+if [[ $watcher == running ]]; then
+  info "Watcher: running"
+else
+  warn "Watcher: NOT RUNNING — anything below is history, not current."
+fi
+
+# How fresh the log is. A last row from four hours ago on a "running" watcher
+# means it is alive but has seen nothing, which is a real answer; the same row
+# with the watcher stopped means the log ends there.
+last_epoch=$(awk -F'\t' '!/^#/ {e=$2} END {print e+0}' $log)
+if (( last_epoch > 0 )); then
+  age=$(( EPOCHSECONDS - last_epoch ))
+  if   (( age < 120 ));  then fresh="${age}s ago"
+  elif (( age < 7200 )); then fresh="$(( age / 60 ))m ago"
+  else                        fresh="$(( age / 3600 ))h ago"
+  fi
+  info "Last entry: $fresh"
 fi
 
 info "Focus log: $log"
@@ -108,6 +149,12 @@ awk -F'\t' -v cutoff="$cutoff" -v showall="$show_all" '
       printf "    No focus theft recorded"
       if (seen["user"] > 0) printf " — %d switches, all of them yours", seen["user"]
       printf ".\n"
+      # The distinction that matters when the answer is "nothing": was anything
+      # being watched during the window at all?
+      if (seen["heartbeat"] + seen["start"] + seen["user"] + seen["gap"] == 0)
+        printf "    Nothing at all was logged in this window — see the watcher state above.\n"
+      else
+        printf "    (%d heartbeats in this window, so it was watching.)\n", seen["heartbeat"]
     } else {
       printf "    \033[1m%d focus thefts\033[0m, by %s:\n\n", seen["theft"], (length(n) == 1 ? "one app" : length(n) " apps")
       # Sort by count, descending — insertion sort over a handful of keys.

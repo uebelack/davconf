@@ -1093,8 +1093,28 @@ ts                        verdict  idle_ms  to_name           from_name
 
 Sleep/wake is logged too, as a `gap` row. Focus theft clusters around wake, and
 without it the first switch after a four-hour sleep looks like it happened four
-hours into an idle afternoon. A `start` row marks the daemon coming up, so "no
-thefts on Tuesday" can be told from "Tuesday is when it crashed".
+hours into an idle afternoon. A `start` row marks the daemon coming up, and a
+`heartbeat` row every 30 minutes says "still here, nothing happened" — because a
+daemon that writes only when something happens is indistinguishable from one
+that died, and "no thefts today" is worth nothing if today is when it stopped.
+
+For the same reason `focus-report` leads with the watcher's actual state and how
+old the newest row is. An empty report has two completely different causes —
+nothing stole focus, or nothing was watching — and they need different actions:
+
+```
+==> Watcher: running
+==> Last entry: 14m ago
+    No focus theft recorded.
+    (6 heartbeats in this window, so it was watching.)
+```
+
+**Beware `ioreg -d 1`.** The depth limit looks like an obvious saving on a large
+tree, and it stops ioreg before it descends to the node's properties — so
+`HIDIdleTime` is not in the output, every lookup returns nothing, and every
+verdict becomes `user`. A watcher that runs for weeks and never reports a single
+theft is a far worse failure than a slow one. `awk` exits at the first match
+anyway, so there was never anything to win.
 
 #### Why there is no compiler here
 
@@ -1112,7 +1132,7 @@ uses what macOS already ships:
 | Need | Used | Cost |
 | ---- | ---- | ---- |
 | Front application | `lsappinfo front`, then `lsappinfo info` | ~7ms, two short-lived processes |
-| Was anyone typing? | `ioreg -c IOHIDSystem`, `HIDIdleTime` | ~6ms, read **only** when focus changed |
+| Was anyone typing? | `ioreg -c IOHIDSystem`, `HIDIdleTime` | ~20ms, read **only** when focus changed |
 | Sleeping between samples | zsh's `zselect` builtin | no fork at all |
 | Reading the log | `awk` | in `/usr/bin` on every Mac |
 

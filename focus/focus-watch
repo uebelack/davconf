@@ -5,6 +5,7 @@
 #   focus-watch                      # run in the foreground, ctrl-c to stop
 #   focus-watch --interval 0.5       # sample twice a second (default: 1s)
 #   focus-watch --idle 1500          # what counts as "you were not touching it"
+#   focus-watch --heartbeat 900      # how often to log "still here" (default 30m)
 #   focus-watch --log PATH           # default ~/Library/Logs/davconf/focus.tsv
 #
 # Normally started by the LaunchAgent that focus/update.sh installs, not by
@@ -54,6 +55,7 @@ zmodload -F zsh/stat b:zstat
 
 interval=1
 idle_threshold_ms=2000
+heartbeat_s=1800
 log=$HOME/Library/Logs/davconf/focus.tsv
 max_bytes=$(( 5 * 1024 * 1024 ))
 
@@ -61,6 +63,7 @@ while (( $# )); do
   case $1 in
     --interval) interval=$2; shift 2 ;;
     --idle)     idle_threshold_ms=$2; shift 2 ;;
+    --heartbeat) heartbeat_s=$2; shift 2 ;;
     --log)      log=$2; shift 2 ;;
     -h|--help)  sed -n '2,/^$/p' ${(%):-%x} | sed 's/^# \{0,1\}//'; return 0 ;;
     *)          print -u2 "unknown option: $1"; return 2 ;;
@@ -104,9 +107,16 @@ front_info() {   # <asn> -> sets f_name f_bundle f_pid
 
 # Milliseconds since the last keyboard or mouse event, from the HID system.
 # Read only on a change, which is why it is not in the hot path.
+#
+# No `-d 1` here, however tempting it looks for trimming the output: the depth
+# limit stops ioreg before it descends to the node's properties, so HIDIdleTime
+# is simply not in it and every lookup silently returns nothing. That turns
+# every verdict into "user" — a watcher that runs forever and never reports a
+# single theft, which is a far worse failure than a slow one. awk exits at the
+# first match anyway, so there was nothing to win.
 idle_ms() {
   local ns
-  ns="$($IOREG -c IOHIDSystem -d 1 2>/dev/null |
+  ns="$($IOREG -c IOHIDSystem 2>/dev/null |
           awk -F' = ' '/HIDIdleTime/ {gsub(/[^0-9]/,"",$2); print $2; exit}')" || ns=''
   [[ -n $ns ]] && print -r -- $(( ns / 1000000 )) || print -r -- -1
 }
@@ -141,6 +151,7 @@ nap() {
 
 prev_asn='' prev_name='' prev_bundle=''
 last_sample=$EPOCHSECONDS
+last_beat=$EPOCHSECONDS
 ticks=0
 
 # A start row, so a gap in the log can be told from the daemon not running —
@@ -170,6 +181,16 @@ while true; do
     if (( ms >= idle_threshold_ms )); then verdict=theft; else verdict=user; fi
     emit $verdict $ms "$f_name" "$f_bundle" "$f_pid" "$prev_name" "$prev_bundle"
     prev_asn=$asn prev_name=$f_name prev_bundle=$f_bundle
+  fi
+
+  # A daemon that writes only when something happens is indistinguishable from
+  # a daemon that died, and "no thefts today" is worth nothing if today is when
+  # it stopped. So: a row saying nothing happened, twice an hour. It is also
+  # what lets focus-report say how long the log has actually been covering.
+  if (( now - last_beat >= heartbeat_s )); then
+    front_info $asn
+    emit heartbeat -1 "$f_name" "$f_bundle" "$f_pid" - -
+    last_beat=$now
   fi
 
   # Checked every few minutes rather than every sample: one zstat a second for
