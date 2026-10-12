@@ -90,14 +90,14 @@ end
 -- Ghostty implements it, so this keeps working on a remote host with no
 -- pbcopy at all.
 --
--- Deferred rather than set right here. Assigning 'clipboard' makes Neovim go
--- looking for a provider, and that is a `pbcopy`/`xclip`/`wl-copy` hunt on
--- $PATH before the first paint. vim.schedule moves it behind the UI coming up,
--- which is early enough that nothing can have yanked yet.
+-- Set here rather than deferred behind vim.schedule, which is the usual advice
+-- on the grounds that assigning 'clipboard' sends Neovim hunting for a provider
+-- on $PATH. Measured on this machine it is worth nothing: 15.7ms median startup
+-- either way, over nine runs. Deferring only bought a window after VimEnter
+-- where the option is still empty, so it is gone.
 --
 -- What this costs: every delete and change writes the unnamed register too, so
 -- d, c and x all replace the clipboard. "_d is the black-hole register for when
 -- that is not wanted.
-vim.schedule(function()
-  vim.opt.clipboard = "unnamedplus"
-end)
+vim.opt.clipboard = "unnamedplus"
+
