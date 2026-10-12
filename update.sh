@@ -2,9 +2,9 @@
 #
 # Bring this machine up to date with the config in this repo.
 #
-#   ./update.sh                 # packages + zsh + the editor, then — on a Mac —
-#                               #   the terminal, window manager and themes and
-#                               #   the macOS system tweaks
+#   ./update.sh                 # packages + zsh + the editor + agent skills,
+#                               #   then — on a Mac — the terminal, window
+#                               #   manager and themes and the macOS tweaks
 #   ./update.sh dev cloud       # …with the named brew profiles instead of
 #                               #   the ones in ~/.config/davconf/profiles
 #                               #   (macOS only; apt/Packages has no profiles)
@@ -16,8 +16,8 @@
 #
 # Two kinds of machine run this. The Macs get everything. The Ubuntu box is
 # headless and reached only over ssh, so it gets the modules that make sense
-# without a screen — packages, zsh, Neovim — and nothing else is even
-# attempted. See the module section at the bottom for which is which.
+# without a screen — packages, zsh, Neovim, the agent skills — and nothing else
+# is even attempted. See the module section at the bottom for which is which.
 #
 # The git pull always runs. Config committed on another machine only reaches
 # this one through it, so a quietly skipped pull leaves the machine silently
@@ -136,6 +136,12 @@ run_module zsh
 # never updates the ones already there, so an unattended daily run cannot move
 # them underneath a working machine.
 run_module nvim
+
+# Agent skills, for Claude Code and the other agent CLIs that read the same
+# directory. On both platforms: a skill is markdown and a shell script, so the
+# ssh machine wants them exactly as much as the Macs do — arguably more, since
+# that is where the work happens without an IDE to fall back on.
+run_module claude
 
 # --- macOS only --------------------------------------------------------------
 # Everything from here needs a screen in front of the machine. A terminal
