@@ -1,0 +1,180 @@
+#!/usr/bin/env zsh
+#
+# Log which application takes window focus, and whether you asked it to.
+#
+#   focus-watch                      # run in the foreground, ctrl-c to stop
+#   focus-watch --interval 0.5       # sample twice a second (default: 1s)
+#   focus-watch --idle 1500          # what counts as "you were not touching it"
+#   focus-watch --log PATH           # default ~/Library/Logs/davconf/focus.tsv
+#
+# Normally started by the LaunchAgent that focus/update.sh installs, not by
+# hand. See focus-report for reading what it writes.
+#
+# --- the signal this is built around ----------------------------------------
+# "Something keeps stealing focus, I am typing and the keystrokes go nowhere."
+# The hard part is not noticing it happened — you notice — it is knowing which
+# of thirty running apps did it, half a second ago, while you were looking at
+# the keyboard.
+#
+# A log of focus changes alone does not answer that, because most focus changes
+# are you clicking on things. What separates the two is whether any human input
+# happened just before: the HID idle timer. Focus moving while the idle timer
+# says nobody has touched the keyboard or mouse for seconds is not a switch you
+# made. That is the whole heuristic, and it is a strong one — stronger than
+# counting rapid switches, which cannot tell a thief from someone cmd-tabbing.
+#
+# --- why no compiler --------------------------------------------------------
+# The obvious build is a Swift daemon on NSWorkspace.didActivateApplication,
+# which is what github.com/Magnus-Gille/attention-thief-catcher does, and it is
+# the better mousetrap: notifications cannot miss an event the way sampling can.
+# It also needs a Swift toolchain on the machine, and the machine with this
+# problem is the managed work Mac — the one that is not allowed to install
+# things, where the Command Line Tools are whatever MDM decided.
+#
+# So: lsappinfo, which ships with macOS, needs no entitlement, no Accessibility
+# grant and no build step. It costs about 7ms per sample, and the idle timer is
+# only read when the front app actually changed, so the steady state is two
+# short-lived processes a second and nothing else.
+#
+# What that costs is honest to state: sampling at 1s misses a thief that takes
+# focus and hands it back inside one interval. The ones that interrupt typing
+# hold focus for longer than that, which is why they interrupt typing — but if
+# you need every event, the Swift daemon above is the right tool and this is not.
+
+emulate -L zsh
+# Deliberately not err_return/no_unset. This runs for weeks: lsappinfo failing
+# once because an app was mid-launch, or ioreg returning nothing for a moment,
+# must cost one sample and not the daemon. Every command that can fail is
+# handled where it is called instead.
+setopt no_nomatch
+
+zmodload zsh/datetime
+zmodload zsh/zselect 2>/dev/null || true
+zmodload -F zsh/stat b:zstat
+
+interval=1
+idle_threshold_ms=2000
+log=$HOME/Library/Logs/davconf/focus.tsv
+max_bytes=$(( 5 * 1024 * 1024 ))
+
+while (( $# )); do
+  case $1 in
+    --interval) interval=$2; shift 2 ;;
+    --idle)     idle_threshold_ms=$2; shift 2 ;;
+    --log)      log=$2; shift 2 ;;
+    -h|--help)  sed -n '2,/^$/p' ${(%):-%x} | sed 's/^# \{0,1\}//'; return 0 ;;
+    *)          print -u2 "unknown option: $1"; return 2 ;;
+  esac
+done
+
+mkdir -p ${log:h}
+
+# Absolute paths, because a LaunchAgent's $PATH is not yours and a daemon
+# should not care what is on it. Overridable only so that the detection and the
+# theft/user verdict can be tested with stubs, rather than by making something
+# steal your focus for real while you are using the machine.
+LSAPPINFO=${DAVCONF_LSAPPINFO:-/usr/bin/lsappinfo}
+IOREG=${DAVCONF_IOREG:-/usr/sbin/ioreg}
+
+# Column order is fixed; focus-report reads it positionally. TSV rather than
+# NDJSON on purpose: the point of this file is that `grep theft` works on it
+# with no tooling, and the report is awk rather than a Python that a managed
+# Mac may not have.
+if [[ ! -s $log ]]; then
+  print -r -- $'# ts\tepoch\tverdict\tidle_ms\tto_name\tto_bundle\tto_pid\tfrom_name\tfrom_bundle' >> $log
+fi
+
+# Tabs and newlines in an app name would shift every later column. Nothing is
+# called that, but a log format that can be broken by a rename is not a format.
+clean() { print -r -- ${${1//[$'\t\n\r']/ }:-?} }
+
+# The front application, as name/bundle/pid. Two processes: lsappinfo cannot
+# resolve "front" and the fields in one call.
+front_asn() { $LSAPPINFO front 2>/dev/null || true }
+
+front_info() {   # <asn> -> sets f_name f_bundle f_pid
+  f_name='?' f_bundle='-' f_pid='-'
+  local out
+  out="$($LSAPPINFO info -only name,bundleID,pid $1 2>/dev/null)" || return 0
+  [[ $out =~ '^"([^"]*)"' ]]        && f_name=$match[1]
+  [[ $out =~ 'bundleID="([^"]*)"' ]] && f_bundle=$match[1]
+  [[ $out =~ 'pid = ([0-9]+)' ]]     && f_pid=$match[1]
+  return 0
+}
+
+# Milliseconds since the last keyboard or mouse event, from the HID system.
+# Read only on a change, which is why it is not in the hot path.
+idle_ms() {
+  local ns
+  ns="$($IOREG -c IOHIDSystem -d 1 2>/dev/null |
+          awk -F' = ' '/HIDIdleTime/ {gsub(/[^0-9]/,"",$2); print $2; exit}')" || ns=''
+  [[ -n $ns ]] && print -r -- $(( ns / 1000000 )) || print -r -- -1
+}
+
+# `print -r` does not expand escapes — that is the point of -r, and it is why
+# the separator has to be a real tab rather than a "\t" in the string.
+TAB=$'\t'
+emit() {  # <verdict> <idle_ms> <to_name> <to_bundle> <to_pid> <from_name> <from_bundle>
+  local ts="$(strftime '%Y-%m-%dT%H:%M:%S%z' $EPOCHSECONDS)"
+  print -r -- "$ts$TAB$EPOCHSECONDS$TAB$1$TAB$2$TAB$(clean $3)$TAB$(clean $4)$TAB$5$TAB$(clean $6)$TAB$(clean $7)" >> $log
+}
+
+rotate_if_big() {
+  local -a st
+  zstat -A st +size $log 2>/dev/null || return 0
+  (( st[1] > max_bytes )) || return 0
+  mv -f $log $log.1
+  print -r -- $'# ts\tepoch\tverdict\tidle_ms\tto_name\tto_bundle\tto_pid\tfrom_name\tfrom_bundle' >> $log
+}
+
+# A fork-free sleep where the module is available; `sleep` otherwise.
+nap() {
+  if zmodload -e zsh/zselect; then
+    # Truncated to an integer by stripping the fraction: zselect wants whole
+    # centiseconds, and zsh math has no int() unless zsh/mathfunc is loaded.
+    local cs=$(( interval * 100 ))
+    zselect -t ${cs%%.*} 2>/dev/null || sleep $interval
+  else
+    sleep $interval
+  fi
+}
+
+prev_asn='' prev_name='' prev_bundle=''
+last_sample=$EPOCHSECONDS
+ticks=0
+
+# A start row, so a gap in the log can be told from the daemon not running —
+# "no thefts on Tuesday" means nothing if Tuesday is when it crashed.
+prev_asn="$(front_asn)"
+front_info $prev_asn
+prev_name=$f_name prev_bundle=$f_bundle
+emit start -1 "$f_name" "$f_bundle" "$f_pid" - -
+
+while true; do
+  asn="$(front_asn)"
+
+  # A clock that jumped much further than one interval means the machine was
+  # asleep. Worth a row of its own: focus theft clusters around wake, and
+  # without this the first switch after a four-hour sleep looks like it
+  # happened four hours into an idle afternoon.
+  now=$EPOCHSECONDS
+  if (( now - last_sample > interval * 5 + 5 )); then
+    front_info $asn
+    emit gap $(( now - last_sample )) "$f_name" "$f_bundle" "$f_pid" "$prev_name" "$prev_bundle"
+  fi
+  last_sample=$now
+
+  if [[ -n $asn && $asn != $prev_asn ]]; then
+    front_info $asn
+    ms=$(idle_ms)
+    if (( ms >= idle_threshold_ms )); then verdict=theft; else verdict=user; fi
+    emit $verdict $ms "$f_name" "$f_bundle" "$f_pid" "$prev_name" "$prev_bundle"
+    prev_asn=$asn prev_name=$f_name prev_bundle=$f_bundle
+  fi
+
+  # Checked every few minutes rather than every sample: one zstat a second for
+  # a file that grows by a line an hour is work for nothing.
+  (( ++ticks % 600 )) || rotate_if_big
+
+  nap
+done

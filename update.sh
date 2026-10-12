@@ -184,6 +184,12 @@ run_module vscode
 # no JDK, it is three files in a jar — and installs it into every IDE found.
 run_module intellij
 
+# The focus-theft watcher, for the machine where something keeps stealing the
+# keyboard. Opt-in rather than opt-out, unlike everything above it: this one is
+# a process that runs forever, not a symlink, so it installs nothing until a
+# machine asks by `touch ~/.config/davconf/focus-watch`.
+run_module focus
+
 # macOS system defaults. No-op on anything else, and a no-op here too unless a
 # setting has actually drifted — it restarts only the apps whose settings changed.
 run_module mac
