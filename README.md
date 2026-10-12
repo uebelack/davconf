@@ -105,7 +105,6 @@ brew trust --tap arthur-ficial/tap
 | `jenv/`     | Registers every installed JDK with jenv                    | both |
 | `zsh/`      | oh-my-zsh, spaceship prompt, plugins, `.zshrc` + `.zprofile` | both |
 | `nvim/`     | The Neovim config — lazy.nvim and its plugins, linked into `~/.config` | both |
-| `claude/`   | Agent skills, linked into `~/.claude/skills` and `~/.agents/skills` | both |
 | `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      | macOS |
 | `karabiner/`| Makes caps lock AeroSpace's leader, which AeroSpace cannot  | macOS |
 | `aerospace/`| The AeroSpace window manager config, linked into `$HOME`    | macOS |
@@ -121,7 +120,7 @@ non-zero, so nothing is swallowed.
 
 The macOS-only modules are not skipped by each script checking `uname` for
 itself — `update.sh` decides it once, in one place, and ends the run after
-`claude/`. A terminal emulator, a window manager, a keyboard remapper and four
+`nvim/`. A terminal emulator, a window manager, a keyboard remapper and four
 editor colour schemes are nothing at all on a machine reached over ssh, so
 there is nothing to symlink and no file on that machine will ever read them.
 
@@ -480,58 +479,6 @@ ZDOTDIR=$(mktemp -d) sh -c 'printf "zmodload zsh/zprof\nsource ~/.zshrc\nzprof |
 names the expensive function outright. Ignore `compinit` and `compdump` in that
 output — the throwaway `ZDOTDIR` sends oh-my-zsh's completion dump somewhere
 new, so it rebuilds it every time you profile and never in a real shell.
-
-### claude
-
-`claude/update.sh` links the agent skills in `claude/skills/` into place, so a
-new machine has them without installing anything.
-
-```sh
-./claude/update.sh          # link the skills
-./claude/update.sh --check  # report what would change, change nothing
-```
-
-**Two links, to one directory.** Claude Code reads `~/.claude/skills`, but these
-machines keep the skills at `~/.agents/skills` — the cross-tool location, with
-`~/.agents/.skill-lock.json` listing the thirteen other agent CLIs selected to
-read from it. Pointing only `~/.claude/skills` at this repo would quietly cut
-the rest of them off, so both paths are linked:
-
-```
-~/.claude/skills  ->  davconf/claude/skills
-~/.agents/skills  ->  davconf/claude/skills
-```
-
-As siblings, not a chain. `~/.claude/skills` -> `~/.agents/skills` -> repo would
-also work, but then a broken link in the middle breaks a path that looks fine
-from the end, and repairing it means knowing which of the two to look at. Two
-independent links are each checked and fixed on their own.
-
-An existing real directory is backed up rather than clobbered, the same as
-every other module. A symlink pointing somewhere else is just replaced, and the
-run says what it used to point at — a link holds no data, so there is nothing to
-preserve.
-
-**What is not in here.** `.skill-lock.json` stays machine-local. It is two
-things at once: provenance for the skills installed from GitHub, which would be
-worth committing, and UI state — a dismissed prompt, the list of agents last
-selected — which is per-machine and would conflict on every pull. The skills
-work without it; it is the installer's bookkeeping, not an input to Claude Code.
-
-Nothing else under `~/.claude` is touched either. `settings.json` names
-machine-specific paths and hook scripts, `plugins/` is marketplace-managed, and
-the rest is session state, history and caches.
-
-Two of the five skills are hand-written — `init-talk`, which scaffolds a talk
-repo, and `generate-image`. The other three are vendored copies of upstream
-skills from GitHub. Committing those is a deliberate trade: it is duplication,
-but it is what makes a fresh machine have them immediately, and the alternative
-— installing them by name the way the Brewfiles do — needs an installer that
-runs unattended, which the skill installer is not.
-
-Adding a skill is adding a directory under `claude/skills/` with a `SKILL.md`
-in it. Because the links point here, a skill installed by the installer lands
-inside this repo and shows up in `git status`, which is where you want it.
 
 ### ghostty
 
