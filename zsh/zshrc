@@ -110,16 +110,44 @@ export NVM_DIR="$HOME/.nvm"
 
 () {
   local aliases=$NVM_DIR/alias target hops=0
-  [[ -r $aliases/default ]] || return
-  target=$(<$aliases/default)
-  # default can point at another alias (lts/*, stable) — follow the chain, but
-  # never in circles.
-  while [[ -r $aliases/$target ]] && (( hops++ < 5 )); do
-    target=$(<$aliases/$target)
-  done
-  # Numeric glob sort, so v24.9.0 does not outrank v24.14.1 the way it would
-  # alphabetically.
-  local -a installed=($NVM_DIR/versions/node/v${target#v}*(/Nn))
+  local -a installed
+
+  if [[ -r $aliases/default ]]; then
+    target=$(<$aliases/default)
+    # default can point at another alias (lts/*, stable) — follow the chain, but
+    # never in circles.
+    while [[ -r $aliases/$target ]] && (( hops++ < 5 )); do
+      target=$(<$aliases/$target)
+    done
+    # Numeric glob sort, so v24.9.0 does not outrank v24.14.1 the way it would
+    # alphabetically.
+    installed=($NVM_DIR/versions/node/v${target#v}*(/Nn))
+  fi
+
+  # Nothing resolved. Two ways to get here and they are not the same thing:
+  # there is no default alias at all, or there is one and it names a version
+  # that has since been uninstalled.
+  #
+  # Both used to end this function with node, npm and anything installed
+  # globally quietly absent from $PATH — and "zsh: command not found: node" on
+  # a machine where ~/.nvm/versions/node is full of them says nothing about
+  # which of the two it was, or that nvm is involved at all. Whatever else is
+  # true, a shell holding the newest installed node beats a shell holding none.
+  if (( ! $#installed )); then
+    local -a any=($NVM_DIR/versions/node/v*(/Nn))
+    if (( $#any )); then
+      installed=($any)
+      # Only the inconsistent case is worth saying out loud. A missing default
+      # on a fresh nvm is ordinary and silently taking the newest is what you
+      # would have wanted; a default pointing at a version that is gone is a
+      # broken state that will keep surprising you until it is fixed.
+      if [[ -n $target ]]; then
+        print -u2 "davconf: nvm default is '$target', which is not installed —" \
+                  "using ${${any[-1]}:t}. Fix with: nvm alias default ${${any[-1]}:t}"
+      fi
+    fi
+  fi
+
   (( $#installed )) && path=(${installed[-1]}/bin $path)
 }
 
