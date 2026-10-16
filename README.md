@@ -580,6 +580,51 @@ looking clean. This is mostly a Linux concern — Homebrew's neovim is current,
 while Ubuntu's archive carries 0.9 in 24.04, 0.6 in 22.04 and 0.4 in 20.04,
 which is why `apt/Packages` takes it from a PPA.
 
+It also probes the **C toolchain**, because nvim-treesitter builds every parser
+from C source on the machine it runs on. When linking is broken you otherwise
+find out as twenty-five `Error during compilation` dialogs inside nvim, each
+waiting for you to press ENTER, with a linker error that names an SDK file and
+says nothing about what to do:
+
+```
+ld: tapi error: malformed file
+  …/MacOSX27.0.sdk/usr/lib/libSystem.B.tbd:4:20: error: unknown architecture
+                     arm64e.x1-macos, arm64e.x1-maccatalyst ]
+```
+
+The probe compiles *and links* a trivial binary, and the "and links" is the
+whole point: a stale Command Line Tools install has a perfectly working clang
+and an `ld` older than the SDK sitting beside it. On macOS 27 the `.tbd` stub
+libraries declare `arm64e.x1` targets, an older `ld` does not know that
+spelling, and it rejects a valid file as malformed. `clang --version` looks
+fine the entire time. Both halves ship in the same package, so they are only
+out of step when it is half-updated — which a macOS upgrade does.
+
+It uses `$CC` and then the same candidates in the same order nvim-treesitter
+does (`cc`, `gcc`, `clang`), so the probe cannot pass with one compiler while
+the parser build picks another and fails. Plugins still install — only the
+parsers need a compiler — but the run exits non-zero, because a broken
+toolchain does not repair itself between runs and the cost of not knowing is a
+dialog per parser every time you open a file in a new language.
+
+The fix, when it fires on a Mac:
+
+```sh
+xcode-select -p    # which toolchain is active
+ld -v              # its linker version — ld-27037.1 is current for macOS 27
+
+softwareupdate --list    # look for "Command Line Tools"
+# or, for a clean reinstall:
+sudo rm -rf /Library/Developer/CommandLineTools && sudo xcode-select --install
+```
+
+Then rebuild what failed — the broken parsers are cached as broken and will not
+retry on their own:
+
+```sh
+nvim --headless "+TSUpdate" +qa
+```
+
 Unlike `ghostty/` and `aerospace/`, this links the whole directory rather than
 a single file. A Neovim config is a tree — `init.lua` plus everything under
 `lua/` — so linking entry by entry would mean editing the script every time a

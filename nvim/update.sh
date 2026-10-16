@@ -159,6 +159,63 @@ if command -v nvim >/dev/null; then
   fi
 fi
 
+# --- the C toolchain ---------------------------------------------------------
+# nvim-treesitter builds every parser from C source on the machine it runs on.
+# When the toolchain cannot link, you do not find out here — you find out as
+# twenty-five "Error during compilation" dialogs inside nvim, each one waiting
+# for you to press ENTER, with a linker error that names an SDK file and says
+# nothing about what to do.
+#
+# The failure worth catching is specifically *linking*, not "is there a
+# compiler". A stale Command Line Tools install has a working clang and an `ld`
+# older than the SDK beside it: on macOS 27 the .tbd stubs declare arm64e.x1
+# targets, an older ld does not know that spelling, and it rejects a valid file
+# as malformed. clang --version looks perfect throughout. So the probe compiles
+# *and links* a real binary, because that is the step that breaks.
+#
+# $CC first, then the same order nvim-treesitter itself tries — otherwise this
+# could pass with cc while the parser build picks something else and fails.
+toolchain_broken=no
+
+ts_cc=""
+for candidate in ${CC:-} cc gcc clang; do
+  [ -n "$candidate" ] || continue
+  if command -v "$candidate" >/dev/null; then ts_cc="$candidate"; break; fi
+done
+
+info "Checking the C toolchain (treesitter builds its parsers)"
+
+if [ -z "$ts_cc" ]; then
+  toolchain_broken=yes
+  warn "No C compiler found — every treesitter parser will fail to build."
+  case "$(uname -s)" in
+    Darwin) warn "  xcode-select --install" ;;
+    *)      warn "  the build-essential entry in apt/Packages covers this" ;;
+  esac
+else
+  probe_dir="$(mktemp -d)"
+  printf 'int main(void){return 0;}\n' > "$probe_dir/probe.c"
+  if probe_out="$("$ts_cc" "$probe_dir/probe.c" -o "$probe_dir/probe" 2>&1)"; then
+    printf '    %-24s %s\n' "$ts_cc" "compiles and links"
+  else
+    toolchain_broken=yes
+    warn "$ts_cc cannot link a trivial program — every parser build will fail:"
+    printf '%s\n' "$probe_out" | sed 's/^/    /' | head -12
+    # The one this has actually been: the SDK is newer than the linker beside
+    # it. Both halves come from the Command Line Tools, so they are only out of
+    # step when that package is half-updated — which a macOS upgrade does.
+    if [ "$(uname -s)" = Darwin ]; then
+      warn "On macOS this is almost always a Command Line Tools install older than the SDK."
+      warn "  xcode-select -p   # which toolchain is active"
+      warn "  ld -v             # its linker version"
+      warn "Then update it:"
+      warn "  softwareupdate --list        # look for 'Command Line Tools'"
+      warn "  sudo rm -rf /Library/Developer/CommandLineTools && sudo xcode-select --install"
+    fi
+  fi
+  rm -rf "$probe_dir"
+fi
+
 # --- plugins -----------------------------------------------------------------
 # `Lazy! install` only clones what is missing, at the commit in lazy-lock.json
 # when there is one. It deliberately does not update: this runs unattended once
@@ -186,6 +243,10 @@ if [ "$nvim_too_old" = yes ]; then
   exit 1
 fi
 
+if [ "$toolchain_broken" = yes ]; then
+  warn "Installing plugins anyway — only the treesitter parsers need a compiler."
+fi
+
 info "Installing Neovim plugins"
 if out="$(nvim --headless "+Lazy! install" +qa 2>&1)"; then
   printf '    %-24s up to date\n' "lazy.nvim"
@@ -194,4 +255,12 @@ else
   # plugins that did not clone, so this reports rather than stops the run.
   warn "nvim --headless '+Lazy! install' failed:"
   printf '%s\n' "$out" | sed 's/^/    /'
+fi
+
+# Non-zero so the daily run names it rather than looking clean. A broken
+# toolchain does not repair itself between runs, and the cost of not knowing is
+# a dialog per parser every time a file of a new language is opened.
+if [ "$toolchain_broken" = yes ]; then
+  warn "The C toolchain is broken — treesitter parsers cannot build until it is fixed."
+  exit 1
 fi
