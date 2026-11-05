@@ -1,0 +1,5 @@
+# markdown-it 15 dropped the ./lib/* subpath exports, but @comark/markdown-it
+# (a @slidev/cli dependency) still imports ./lib/token.mjs and declares
+# markdown-it ^14. Pin to 14 until that is fixed upstream.
+overrides:
+  markdown-it: ^14.3.2

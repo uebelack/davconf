@@ -1,242 +1,474 @@
-.my-auto {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Orbitron:wght@500;600;700;800;900&display=swap');
+
+/* ===========================================================================
+   Synthwave '85 — the palette from davconf / uebelacker.ch, verbatim.
+   Magenta and cyan are *lighting*: glows, hairlines, grid lines, borders.
+   They are never a fill. The ground is always indigo.
+   =========================================================================== */
+:root {
+  color-scheme: dark;
+
+  /* Backgrounds, darkest first. */
+  --sw-abyss:  #0a0518;
+  --sw-shadow: #120a25;
+  --sw-deep:   #150d2b;
+  --sw-bg:     #1a1033;
+  --sw-raised: #1c1238;
+  --sw-float:  #241b3a;
+  --sw-line:   #2f2350;
+  --sw-border: #3b3163;
+
+  /* Text, brightest first. */
+  --sw-white:   #ffffff;
+  --sw-fg:      #d4c8ff;
+  --sw-muted:   #c3b6ef;
+  --sw-dim:     #9d7fd0;
+  --sw-faint:   #6e5c96;
+  --sw-comment: #495495;
+
+  /* The neons. */
+  --sw-coral:   #fe4450;
+  --sw-green:   #72f1b8;
+  --sw-gold:    #fede5d;
+  --sw-magenta: #f92aad;
+  --sw-hotpink: #ff7edb;
+  --sw-cyan:    #00f0ff;
+  --sw-aqua:    #8bfff5;
+  --sw-orange:  #ff8b39;
+
+  /* Glow tokens. Neon is additive — these stack, they never just fade. */
+  --glow-magenta: 0 0 8px rgb(249 42 173 / 55%), 0 0 24px rgb(249 42 173 / 30%);
+  --glow-cyan:    0 0 8px rgb(0 240 255 / 55%), 0 0 24px rgb(0 240 255 / 30%);
+  --text-glow-magenta: 0 0 6px rgb(249 42 173 / 70%), 0 0 18px rgb(249 42 173 / 40%);
+  --text-glow-cyan:    0 0 6px rgb(0 240 255 / 70%), 0 0 18px rgb(0 240 255 / 40%);
+  --text-glow-white:   0 0 4px rgb(255 255 255 / 60%), 0 0 16px rgb(249 42 173 / 50%);
+
+  --grad-neon:   linear-gradient(90deg, var(--sw-magenta) 0%, var(--sw-hotpink) 35%, var(--sw-cyan) 100%);
+  --grad-sunset: linear-gradient(180deg, #fede5d 0%, #ffc85d 14%, #ff9f45 28%, #ff8b39 43%,
+                                         #fe4450 57%, #f92aad 71%, #fb66c4 86%, #ffb8f3 100%);
 }
 
-.slidev-layout.cover h1, .slidev-layout.intro h1 {
-    font-size: 2.5rem !important;
-    line-height: 1;
-    line-height: 4rem;
-    margin-bottom: 0 !important;
+/* ===========================================================================
+   Slide ground
+   =========================================================================== */
+.slidev-layout {
+  position: relative;
+  background-color: var(--sw-bg);
+  color: var(--sw-fg);
+  font-family: 'Fira Code', ui-monospace, monospace;
+  font-weight: 300;
+  background-image:
+    radial-gradient(120% 60% at 50% 120%, rgb(249 42 173 / 14%) 0%, transparent 60%),
+    radial-gradient(90% 50% at 50% -10%, rgb(3 237 249 / 7%) 0%, transparent 55%),
+    linear-gradient(180deg, var(--sw-abyss) 0%, var(--sw-bg) 45%, var(--sw-deep) 100%);
 }
 
+/* The permanent wireframe lattice: cyan verticals, magenta horizontals,
+   faded out toward the top so it never competes with a heading. */
+.slidev-layout::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right,  rgb(0 240 255 / 6%) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(249 42 173 / 6%) 1px, transparent 1px),
+    repeating-linear-gradient(180deg, rgb(0 0 0 / 20%) 0 1px, transparent 1px 3px);
+  background-size: 64px 64px, 64px 64px, 100% 3px;
+  mask-image: linear-gradient(180deg, transparent 0%, rgb(0 0 0 / 40%) 28%, rgb(0 0 0 / 90%) 100%);
+}
+/* Everything the author writes sits above the lattice. */
+.slidev-layout > * { position: relative; z-index: 1; }
 
-.slidev-layout.cover,
-.slidev-layout.intro {
-  @apply h-full grid;
+/* ===========================================================================
+   Typography
+   =========================================================================== */
+.slidev-layout h1,
+.slidev-layout h2,
+.slidev-layout h3 {
+  font-family: Orbitron, 'Fira Code', ui-monospace, monospace;
+  color: var(--sw-white);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow: var(--text-glow-white);
+}
+.slidev-layout h1 { font-size: 2.3rem; line-height: 1.18; margin-bottom: 1.6rem; }
+.slidev-layout h2 { font-size: 1.35rem; letter-spacing: 0.08em; color: var(--sw-hotpink);
+                    text-shadow: var(--text-glow-magenta); }
+.slidev-layout h3 { font-size: 1.05rem; letter-spacing: 0.12em; color: var(--sw-aqua);
+                    text-shadow: none; }
 
-  h1 {
-    @apply text-5xl leading-20;
-  }
-
-  h1 + p {
-    @apply -mt-2 opacity-50 mb-4;
-  }
-
-  p + h2,
-  ul + h2,
-  table + h2 {
-    @apply mt-10;
-  }
+/* A neon rule under every h1 — the one piece of structure every slide shares. */
+.slidev-layout h1::after {
+  content: '';
+  display: block;
+  height: 2px;
+  width: 100%;
+  margin-top: 0.55rem;
+  border-radius: 2px;
+  background: var(--grad-neon);
+  box-shadow: var(--glow-magenta);
 }
 
-.two-cols-header {
-  grid-template-rows: none !important;
-  grid-column-gap: 30px;
-}
+.slidev-layout strong { color: var(--sw-hotpink); font-weight: 600; }
+.slidev-layout em     { color: var(--sw-gold); font-style: italic; }
+.slidev-layout a      { color: var(--sw-cyan); text-decoration: none;
+                        border-bottom: 1px solid rgb(0 240 255 / 35%); }
 
-.two-cols-header .col-bottom {
-  min-height: 50px;
-  padding-bottom: 10px;
-}
+/* Bullets: magenta markers, lavender text. */
+.slidev-layout ul > li::marker { color: var(--sw-magenta); }
+.slidev-layout ol > li::marker { color: var(--sw-magenta); font-family: Orbitron, monospace; }
+.slidev-layout li { line-height: 1.65; padding-bottom: 0.35rem; }
 
-.slidev-layout h1 + p, .col-header > p {
-  opacity: 1 !important;
-}
+::selection { background: var(--sw-orange); color: var(--sw-bg); }
 
-.emoji-list li {
-  list-style: none;
-  margin-left: 0;
+/* ===========================================================================
+   Code — dressed as a terminal pane
+   =========================================================================== */
+.slidev-layout .slidev-code-wrapper,
+.slidev-layout pre.slidev-code {
+  border: 1px solid var(--sw-border);
+  border-radius: 6px;
+  background: rgb(10 5 24 / 72%) !important;
+  box-shadow:
+    0 0 0 1px rgb(249 42 173 / 18%),
+    0 18px 50px -24px rgb(249 42 173 / 45%),
+    0 0 70px -40px rgb(0 240 255 / 40%);
 }
-
-.center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.newspaper {
-  background: #f5f0e8;
-  color: #1a1a1a;
-  padding: 16px 48px;
+.slidev-layout pre.slidev-code { padding: 1rem 1.1rem !important; font-size: 0.78rem; line-height: 1.55; }
+.slidev-layout code { font-family: 'Fira Code', ui-monospace, monospace; }
+.slidev-layout :not(pre) > code {
+  color: var(--sw-aqua);
+  background: rgb(0 240 255 / 8%);
+  border: 1px solid rgb(0 240 255 / 22%);
   border-radius: 4px;
+  padding: 0.08em 0.36em;
+}
+
+/* ===========================================================================
+   Full-bleed background slides. The scrim rides in the same property as the
+   photo so it cannot be knocked out of order by the layout.
+   =========================================================================== */
+.bg-horizon, .bg-arcade, .bg-monolith {
+  background-size: cover, cover !important;
+  background-position: center, center !important;
+  background-repeat: no-repeat, no-repeat !important;
+}
+.bg-horizon {
+  background-image:
+    linear-gradient(180deg, rgb(10 5 24 / 72%) 0%, rgb(10 5 24 / 38%) 42%, rgb(10 5 24 / 88%) 100%),
+    url(./images/bg-horizon.jpg) !important;
+}
+.bg-arcade {
+  background-image:
+    linear-gradient(180deg, rgb(10 5 24 / 78%) 0%, rgb(10 5 24 / 55%) 50%, rgb(10 5 24 / 88%) 100%),
+    url(./images/bg-arcade.jpg) !important;
+}
+.bg-monolith {
+  background-image:
+    linear-gradient(180deg, rgb(10 5 24 / 76%) 0%, rgb(10 5 24 / 42%) 45%, rgb(10 5 24 / 90%) 100%),
+    url(./images/bg-monolith.jpg) !important;
+}
+/* Add a talk-specific background the same way: drop the image in images/,
+   add the class here, put `class: <name>` in the slide's frontmatter. The
+   scrim goes first in `background-image` so it composites over the photo; a
+   face or a focal subject wants a heavier scrim (~85%) than a landscape so
+   the words stay in front of it. */
+
+/* ===========================================================================
+   Cover / fact / statement
+   =========================================================================== */
+.slidev-layout.cover h1, .slidev-layout.intro h1 {
+  font-size: 3.4rem !important;
+  line-height: 1.02;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  margin-bottom: 0 !important;
+  /* Chrome fill — the hero treatment from the homepage. No magenta stop:
+     a magenta run of letters disappears into the sun behind it. */
+  background-image: linear-gradient(100deg,
+    #ffffff 0%, #fff59d 16%, #ffffff 34%, #8bfff5 56%, #00f0ff 74%, #ffffff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  text-shadow: none;
+  animation: chrome-shift 9s linear infinite;
+}
+.slidev-layout.cover h1::after, .slidev-layout.intro h1::after { display: none; }
+
+.slidev-layout.cover h2, .slidev-layout.intro h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  color: var(--sw-aqua);
+  text-shadow: var(--text-glow-cyan);
+  margin-top: 1.1rem;
+}
+
+.slidev-layout.fact h1 {
+  font-size: 4rem !important;
+  line-height: 1.1;
+  font-weight: 900;
+  color: var(--sw-white);
+  text-shadow: 0 0 6px rgb(255 255 255 / 70%), 0 0 28px rgb(249 42 173 / 75%), 0 0 60px rgb(249 42 173 / 45%);
+}
+.slidev-layout.fact h1::after { display: none; }
+.slidev-layout.fact h2 {
+  font-size: 1.3rem;
+  letter-spacing: 0.1em;
+  color: var(--sw-hotpink);
+  margin-top: 1rem;
+}
+
+.slidev-layout.statement h1 {
+  font-size: 2.5rem !important;
+  color: var(--sw-cyan);
+  text-shadow: var(--text-glow-cyan);
+}
+.slidev-layout.statement h1::after { display: none; }
+.slidev-layout.statement h2 {
+  font-size: 1.5rem;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  color: var(--sw-fg);
+  text-shadow: none;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* ===========================================================================
+   The bulletin — was a newsprint page, now a CRT news feed.
+   Class names are unchanged so the markdown did not have to move.
+   =========================================================================== */
+.newspaper {
+  background: rgb(10 5 24 / 72%);
+  color: var(--sw-fg);
+  padding: 18px 44px;
+  border: 1px solid var(--sw-border);
+  border-radius: 6px;
   height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  box-shadow:
+    0 0 0 1px rgb(249 42 173 / 22%),
+    0 24px 70px -30px rgb(249 42 173 / 50%),
+    0 0 90px -50px rgb(0 240 255 / 45%);
 }
-
 .newspaper-masthead {
-  font-family: 'Roboto Slab', serif;
-  font-size: 1.9rem;
+  font-family: Orbitron, monospace;
+  font-size: 1.5rem;
   font-weight: 900;
   text-align: center;
-  letter-spacing: 8px;
+  letter-spacing: 0.35em;
   text-transform: uppercase;
-  padding-bottom: 8px;
+  padding-bottom: 10px;
+  color: var(--sw-magenta);
+  text-shadow: var(--text-glow-magenta);
 }
-
-.newspaper-rule-thick {
-  border: none;
-  border-top: 4px double #1a1a1a;
-  margin: 0;
-}
-
-.newspaper-articles {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 8px 0;
-}
-
-.newspaper-article {
-  padding: 5px 0;
-}
-
+.newspaper-rule-thick { border: none; height: 2px; margin: 0;
+  background: var(--grad-neon); box-shadow: var(--glow-magenta); }
+.newspaper-articles { display: flex; flex-direction: column; gap: 0; padding: 10px 0; }
+.newspaper-article { padding: 7px 0; }
 .newspaper-date {
-  font-family: 'Roboto Slab', serif;
-  font-size: 0.7rem;
+  font-family: Orbitron, monospace;
+  font-size: 0.62rem;
   text-transform: uppercase;
-  letter-spacing: 3px;
-  color: #666;
-  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: var(--sw-cyan);
+  font-weight: 600;
+  text-shadow: var(--text-glow-cyan);
 }
-
 .newspaper-headline {
-  font-family: 'Roboto Slab', serif;
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.3;
-  padding-top: 4px;
+  font-family: 'Fira Code', monospace;
+  font-size: 1.12rem;
+  font-weight: 400;
+  line-height: 1.4;
+  padding-top: 5px;
+  color: var(--sw-white);
 }
+.newspaper-divider { border-top: 1px solid var(--sw-line); }
 
-.newspaper-divider {
-  border-top: 1px solid #ccc;
-}
-
+/* ===========================================================================
+   Big quote
+   =========================================================================== */
 .big-quote {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 100%;
-  width: 100%;
-  padding: 0 1rem;
+  display: flex; flex-direction: column; justify-content: center;
+  height: 100%; width: 100%; padding: 0 1rem;
 }
-
 .big-quote::before {
   content: "\201C";
-  font-family: 'Roboto Slab', serif;
-  font-size: 9rem;
+  font-family: Orbitron, monospace;
+  font-size: 8rem;
   line-height: 0.6;
-  opacity: 0.15;
-  margin-bottom: 1rem;
+  color: var(--sw-magenta);
+  opacity: 0.35;
+  text-shadow: var(--text-glow-magenta);
+  margin-bottom: 1.2rem;
 }
-
 .big-quote p {
-  font-family: 'Roboto Slab', serif;
-  font-size: 2.3rem;
-  line-height: 1.4;
-  font-weight: 300;
+  font-family: Orbitron, 'Fira Code', monospace;
+  font-size: 2rem;
+  line-height: 1.45;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   max-width: 100%;
   margin: 0;
-}
-/* Mermaid diagrams. The svg itself lives in a shadow root, so styling it has
-   to go through themeVariables/themeCSS in setup/mermaid.ts — rules here do
-   not reach it. */
-.slidev-layout .mermaid {
-  display: flex;
-  justify-content: center;
+  color: var(--sw-white);
+  text-shadow: var(--text-glow-white);
 }
 
-/* Draft stamp on the title slide — mirrors the author line at bottom-left. */
+/* ===========================================================================
+   Comparison columns — three cards, each with its own neon register
+   =========================================================================== */
+.compare {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.4rem;
+  margin-top: 2rem;
+}
+.compare-col {
+  position: relative;
+  padding: 1rem 1.1rem 0.6rem;
+  border: 1px solid var(--sw-border);
+  border-top: 2px solid var(--sw-faint);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgb(36 27 58 / 72%) 0%, rgb(21 13 43 / 72%) 100%);
+}
+/* if-else: the past, lit gold. */
+.compare-col:nth-child(1) { border-top-color: var(--sw-gold); }
+.compare-col:nth-child(1) .compare-head { color: var(--sw-gold); text-shadow: 0 0 10px rgb(254 222 93 / 45%); }
+/* decision model: the subject, lit magenta + cyan, and raised. */
+.compare-col:nth-child(2) {
+  border-top-color: var(--sw-magenta);
+  box-shadow: 0 0 0 1px rgb(249 42 173 / 30%),
+              0 12px 40px -16px rgb(249 42 173 / 55%),
+              0 0 60px -26px rgb(0 240 255 / 40%);
+}
+.compare-col:nth-child(2) .compare-head { color: var(--sw-hotpink); text-shadow: var(--text-glow-magenta); }
+/* LLM: the incumbent, lit cyan. */
+.compare-col:nth-child(3) { border-top-color: var(--sw-cyan); }
+.compare-col:nth-child(3) .compare-head { color: var(--sw-cyan); text-shadow: var(--text-glow-cyan); }
+
+/* Cyan viewfinder brackets — what makes a rectangle read as an interface. */
+.compare-col::before, .compare-col::after {
+  content: ''; position: absolute; width: 12px; height: 12px;
+  border-color: var(--sw-cyan); border-style: solid; border-width: 0; opacity: 0.55;
+}
+.compare-col::before { top: 7px; left: 7px; border-top-width: 1px; border-left-width: 1px; }
+.compare-col::after  { right: 7px; bottom: 7px; border-right-width: 1px; border-bottom-width: 1px; }
+
+.compare-head {
+  font-family: Orbitron, monospace;
+  font-weight: 700;
+  font-size: 1.12rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.compare-essence {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.92rem;
+  line-height: 1.3;
+  color: var(--sw-dim);
+  padding: 0.35rem 0 0.7rem;
+}
+.compare-essence::before { content: '❯ '; color: var(--sw-green); }
+.compare-col ul { margin: 0; padding-left: 1rem; }
+.compare-col li { font-size: 0.88rem; line-height: 1.5; padding-bottom: 0.5rem; color: var(--sw-muted); }
+.compare-footer {
+  padding-top: 2rem;
+  font-size: 1.05rem;
+  color: var(--sw-aqua);
+}
+.compare-footer::before { content: '// '; color: var(--sw-comment); }
+
+/* ===========================================================================
+   Agenda / takeaways
+   =========================================================================== */
+.agenda-list ol { padding-left: 1.6rem; }
+.agenda-list li {
+  font-size: 1.12rem;
+  line-height: 1.5;
+  padding-bottom: 0.8rem;
+  color: var(--sw-fg);
+}
+.agenda-list li::marker { color: var(--sw-magenta); font-weight: 700; }
+
+/* ===========================================================================
+   Odds and ends
+   =========================================================================== */
+.center { display: flex; justify-content: center; align-items: center; }
+.my-auto { margin-top: 0 !important; margin-bottom: 0 !important; }
+.two-cols-header { grid-template-rows: none !important; grid-column-gap: 30px; }
+.two-cols-header .col-bottom { min-height: 50px; padding-bottom: 10px; }
+.slidev-layout h1 + p, .col-header > p { opacity: 1 !important; }
+.emoji-list li { list-style: none; margin-left: 0; }
+
+/* The nag logo ships white-on-transparent, so on this ground it needs no
+   inversion — only a light. */
+.logo-nag { filter: drop-shadow(0 0 8px rgb(249 42 173 / 60%)) drop-shadow(0 0 18px rgb(0 240 255 / 30%)); }
+
+/* A QR has to stay black-on-white to scan. Give it a lit frame instead. */
+.qr-frame {
+  background: var(--sw-white);
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px rgb(249 42 173 / 50%),
+              0 0 30px -4px rgb(249 42 173 / 60%),
+              0 0 60px -16px rgb(0 240 255 / 45%);
+}
+.qr-frame img { display: block; width: 100%; }
+
+/* Draft stamp — coral, the "something is wrong" colour. */
 .draft-badge {
   position: absolute;
   bottom: 2.2rem;
   right: 2.8rem;
-  font-family: 'Fira Code', monospace;
+  z-index: 2;
+  font-family: Orbitron, monospace;
   font-weight: 700;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   letter-spacing: 0.3em;
   padding: 0.25rem 0.5rem 0.25rem 0.8rem;
-  border: 3px solid currentColor;
+  border: 2px solid currentColor;
   border-radius: 4px;
-  color: #d32f2f;            /* border picks this up via currentColor */
+  color: var(--sw-coral);
+  text-shadow: 0 0 10px rgb(254 68 80 / 70%);
+  box-shadow: 0 0 14px -2px rgb(254 68 80 / 55%);
   transform: rotate(-5deg);
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
-/* Closing slide: the fact layout's default 6rem heading is louder than needed. */
-.slidev-layout.fact h1 {
-  font-size: 4.5rem !important;
-  line-height: 1.15;
-}
+/* Mermaid is centred; its colours are set in setup/mermaid.ts, because the
+   diagram lives in a shadow root that rules here cannot reach. */
+.slidev-layout .mermaid { display: flex; justify-content: center; }
 
-/* Three comparison columns, for slides that set one term against another. */
-.compare {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  margin-top: 2.6rem;
-}
-
-.compare-col {
-  border-top: 3px solid currentColor;
-  padding-top: 0.7rem;
-}
-
-.compare-head {
-  font-weight: 700;
-  font-size: 1.45rem;
-  line-height: 1.2;
-}
-
-.compare-essence {
-  font-family: 'Caveat', cursive;
-  font-size: 1.6rem;
-  line-height: 1.2;
-  opacity: 0.75;
-  padding: 0.3rem 0 0.7rem;
-}
-
-.compare-col ul {
-  margin: 0;
-  padding-left: 1.1rem;
-}
-
-.compare-col li {
-  font-size: 1.02rem;
-  line-height: 1.5;
-  padding-bottom: 0.6rem;
-}
-
-.compare-footer {
-  padding-top: 3.2rem;
-  font-size: 1.1rem;
-  opacity: 0.8;
-}
-
-/* Agenda slide: a little more air and weight than a default ordered list. */
-.agenda-list ol {
-  padding-left: 1.6rem;
-}
-
-.agenda-list li {
-  font-size: 1.25rem;
-  line-height: 1.5;
-  padding-bottom: 0.85rem;
-}
-
-/* Footnote on every slide. .slidev-layout is the positioned slide root, so a
-   pseudo-element rides along on each one — no per-slide markup to keep in sync. */
+/* Footnote on every slide. */
 .slidev-layout::after {
   content: "{{AI_FOOTNOTE}}";
   position: absolute;
   bottom: 0.4rem;
-  left: 0;
-  right: 0;
+  left: 0; right: 0;
+  z-index: 2;
   text-align: center;
   font-size: 0.6rem;
   letter-spacing: 0.04em;
-  opacity: 0.55;
+  color: var(--sw-comment);
   pointer-events: none;
+}
+
+/* ===========================================================================
+   Motion — one slow gradient drift, nothing else. A sign that flickers
+   constantly reads as broken rather than as neon.
+   =========================================================================== */
+@keyframes chrome-shift {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slidev-layout.cover h1, .slidev-layout.intro h1 { animation: none; }
 }

@@ -55,11 +55,18 @@ for LANG in en de; do
   OUT="$DIR/slides/$LANG"
   mkdir -p "$OUT/setup" "$OUT/images"
 
-  cp "$ASSETS/common/setup/mermaid.ts" "$OUT/setup/mermaid.ts"
-  cp "$ASSETS/common/vercel.json"      "$OUT/vercel.json"
-  cp "$ASSETS/common/gitignore"        "$OUT/.gitignore"
-  cp "$ASSETS/common/images/nag.svg"   "$OUT/images/nag.svg"
-  cp "$ASSETS/common/images/qr.svg"    "$OUT/images/qr.svg"
+  cp "$ASSETS/common/setup/mermaid.ts"    "$OUT/setup/mermaid.ts"
+  cp "$ASSETS/common/setup/shiki.ts"      "$OUT/setup/shiki.ts"
+  cp "$ASSETS/common/vercel.json"         "$OUT/vercel.json"
+  cp "$ASSETS/common/vite.config.ts"      "$OUT/vite.config.ts"
+  cp "$ASSETS/common/pnpm-workspace.yaml" "$OUT/pnpm-workspace.yaml"
+  cp "$ASSETS/common/gitignore"           "$OUT/.gitignore"
+  cp "$ASSETS/common/images/nag.svg"      "$OUT/images/nag.svg"
+  cp "$ASSETS/common/images/qr.svg"       "$OUT/images/qr.svg"
+  # The three synthwave wallpapers the styles.css bg-* classes expect.
+  cp "$ASSETS/common/images/bg-horizon.jpg"  "$OUT/images/bg-horizon.jpg"
+  cp "$ASSETS/common/images/bg-arcade.jpg"   "$OUT/images/bg-arcade.jpg"
+  cp "$ASSETS/common/images/bg-monolith.jpg" "$OUT/images/bg-monolith.jpg"
 
   if [ "$LANG" = "en" ]; then
     export TITLE="$TITLE_EN" SUBTITLE="$SUBTITLE_EN"
@@ -85,8 +92,18 @@ for LANG in en de; do
   fi
 
   if [ "$DO_INSTALL" = 1 ]; then
-    echo "npm install in $OUT ..."
-    (cd "$OUT" && npm install --silent) || echo "warn: npm install failed in $OUT" >&2
+    echo "pnpm install in $OUT ..."
+    if (cd "$OUT" && pnpm install); then
+      # The markdown-it pin in pnpm-workspace.yaml is what keeps slidev
+      # startable. If a 15.x copy ever gets linked anyway, say so here rather
+      # than let the author discover it as ERR_PACKAGE_PATH_NOT_EXPORTED.
+      if ls -d "$OUT"/node_modules/.pnpm/markdown-it@15* >/dev/null 2>&1; then
+        echo "warn: markdown-it 15 got linked in $OUT despite the override —" >&2
+        echo "      slidev will fail to start. Try: rm -rf node_modules pnpm-lock.yaml && pnpm install" >&2
+      fi
+    else
+      echo "warn: pnpm install failed in $OUT" >&2
+    fi
   fi
 done
 
@@ -96,4 +113,4 @@ fi
 
 echo "✅ talk scaffolded in $DIR"
 echo "   repo url: $REPO"
-echo "   dev:      cd $DIR/slides/en && npm run dev"
+echo "   dev:      cd $DIR/slides/en && pnpm dev"

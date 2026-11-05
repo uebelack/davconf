@@ -12,17 +12,21 @@ import { defineMermaidSetup } from '@slidev/types'
 export default defineMermaidSetup(() => {
   return {
     theme: 'base',
-    look: 'handDrawn',
-    handDrawnSeed: 42,
     themeVariables: {
-      fontFamily: 'Caveat',
-      fontSize: '26px',
-      primaryColor: '#ffffff',
-      primaryTextColor: '#000000',
-      primaryBorderColor: '#3f3f46',
-      lineColor: '#3f3f46',
-      tertiaryColor: '#ffffff',
-      edgeLabelBackground: '#ffffff',
+      fontFamily: 'Fira Code, ui-monospace, monospace',
+      fontSize: '17px',
+      // Nodes are dark glass on the slide's indigo, outlined in magenta.
+      primaryColor: '#241b3a',
+      primaryTextColor: '#d4c8ff',
+      primaryBorderColor: '#f92aad',
+      secondaryColor: '#150d2b',
+      tertiaryColor: '#1a1033',
+      background: '#1a1033',
+      mainBkg: '#241b3a',
+      // Edges are the cyan register — "what you call".
+      lineColor: '#00f0ff',
+      textColor: '#d4c8ff',
+      edgeLabelBackground: '#150d2b',
     },
     themeCSS: `
       /* Mermaid sizes this div shrink-to-fit and then leaves it at the left
@@ -37,6 +41,20 @@ export default defineMermaidSetup(() => {
         display: table !important;
         margin: 0 auto !important;
       }
+      /* Neon, not ink: every node and edge throws light. */
+      .node rect, .node polygon, .node circle, .node path {
+        filter: drop-shadow(0 0 6px rgba(249, 42, 173, 0.55));
+      }
+      .edgePath .path, .flowchart-link {
+        filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.65));
+        stroke-width: 1.8px;
+      }
+      .edgeLabel, .edgeLabel p {
+        color: #8bfff5 !important;
+        background: #150d2b !important;
+        fill: #150d2b !important;
+      }
+      marker path { fill: #00f0ff !important; stroke: #00f0ff !important; }
     `,
     flowchart: {
       curve: 'basis',

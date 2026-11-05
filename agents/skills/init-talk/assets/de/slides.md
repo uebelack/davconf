@@ -1,11 +1,13 @@
 ---
-colorSchema: light
+layout: cover
+class: bg-horizon
+colorSchema: dark
 favicon: https://uebelacker.dev/favicon.ico
 fonts:
-  sans: ['Fira Code', 'Caveat']
-  serif: Roboto Slab
-  mono: Fira Code
-  weights: '300,400,600,700'
+  provider: none
+  sans: 'Fira Code'
+  serif: Orbitron
+  mono: 'Fira Code'
 ---
 
 # {{TITLE}}
@@ -30,13 +32,25 @@ fonts:
 
 <div class="absolute bottom-10">
   <div class="flex items-end">
-    <img src="./images/nag.svg" style="width: 20%; filter: invert(1);" />
+    <img src="./images/nag.svg" class="logo-nag" style="width: 20%;" />
     <div style="width:45%"></div>
     <div style="width: 30%; display: flex; flex-direction: column; align-items: center;">
-      <img src="./images/qr.svg" style="width: 100%;"/>
+      <div class="qr-frame" style="width: 100%;"><img src="./images/qr.svg"/></div>
       <div>uebelacker.dev</div>
     </div>
   </div>
+</div>
+
+---
+
+# Was wir anschauen
+
+<div class="agenda-list">
+
+1. TODO
+2. TODO
+3. TODO
+
 </div>
 
 ---
@@ -48,7 +62,7 @@ layout: fact
 <br/>
 
 <div class="center">
-<img src="./images/qr_repo.svg" style="width: 300px"/>
+<div class="qr-frame" style="width: 300px"><img src="./images/qr_repo.svg"/></div>
 </div>
 
 {{REPO_URL}}
