@@ -33,3 +33,20 @@ cask "ghostty"
 cask "maccy"
 cask "fork"
 cask "font-fira-code-nerd-font"   # the prompt needs a Nerd Font for its glyphs
+
+# Docker, without Docker Desktop. The CLI is useless on its own — it needs a
+# daemon to talk to — so colima brings up a tiny Lima VM that runs dockerd and
+# exposes its socket at ~/.colima/default/docker.sock. Start it once per boot
+# with `colima start` (or `brew services start colima` to autostart on login).
+#
+# docker-compose and docker-buildx are CLI plugins: brew installs them under
+# $HOMEBREW_PREFIX/lib/docker/cli-plugins, which the docker CLI does not look
+# in by default. One-time, per machine, to make `docker compose` and
+# `docker buildx` resolve:
+#   mkdir -p ~/.docker/cli-plugins
+#   ln -sfn "$(brew --prefix)/opt/docker-compose/bin/docker-compose" ~/.docker/cli-plugins/docker-compose
+#   ln -sfn "$(brew --prefix)/opt/docker-buildx/bin/docker-buildx"   ~/.docker/cli-plugins/docker-buildx
+brew "docker"
+brew "docker-compose"
+brew "docker-buildx"
+brew "colima"

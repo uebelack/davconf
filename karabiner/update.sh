@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 #
-# Teach caps lock to be AeroSpace's leader key, via Karabiner-Elements.
+# Install the Karabiner-Elements rules this repo owns:
+#   - the AeroSpace leader on caps lock;
+#   - the Logitech R500 presenter, whose two arrow buttons flip between
+#     native macOS Spaces (so fullscreening two apps and clicking the remote
+#     toggles between them) when the input comes from its Bolt receiver.
 #
-#   ./karabiner/update.sh          # install the rule where out of date
+#   ./karabiner/update.sh          # install the rules where out of date
 #   ./karabiner/update.sh --check  # report what would change, change nothing
 #
 # AeroSpace's modifiers are cmd, alt, ctrl and shift. A leader has to be one of
@@ -55,7 +59,8 @@ set -euo pipefail
 
 KARABINER_DIR="$HOME/.config/karabiner"
 CONFIG="$KARABINER_DIR/karabiner.json"
-ASSET="$KARABINER_DIR/assets/complex_modifications/davconf-leader.json"
+ASSET_LEADER="$KARABINER_DIR/assets/complex_modifications/davconf-leader.json"
+ASSET_R500="$KARABINER_DIR/assets/complex_modifications/davconf-r500.json"
 # What this module used to install, back when the leader was fn. Removed on
 # sight so the Karabiner UI does not go on listing a rule nothing installs.
 LEGACY_ASSET="$KARABINER_DIR/assets/complex_modifications/davconf-fn-leader.json"
@@ -133,19 +138,23 @@ done
 
 if [ -z "$app_dir" ]; then
   printf '    %-24s Karabiner not installed\n' "caps lock leader"
+  printf '    %-24s Karabiner not installed\n' "R500 presenter"
   warn "brew/Brewfile.common installs it — run ./brew/update.sh first"
   exit 0
 fi
 
 if ! command -v python3 >/dev/null; then
   printf '    %-24s python3 not found\n' "caps lock leader"
-  warn "the rule is JSON surgery on karabiner.json — python3 does it, and is missing"
+  printf '    %-24s python3 not found\n' "R500 presenter"
+  warn "the rules are JSON surgery on karabiner.json — python3 does it, and is missing"
   exit 1
 fi
 
-# --- the rule ---------------------------------------------------------------
-# Written to a temp file first so a failure here leaves what is installed alone
+# --- the rules --------------------------------------------------------------
+# Written to temp files first so a failure here leaves what is installed alone
 # rather than half-rewriting it.
+#
+# --- caps lock leader ---
 #
 # shift is `optional: any` rather than mandatory, which is what lets one
 # manipulator cover both caps+h and caps+shift+h and still pass the shift
@@ -159,9 +168,37 @@ fi
 # The tap needs `hold_down_milliseconds`: macOS ignores a caps_lock press that
 # is over as fast as a synthesised one, and silently does nothing. 100ms is
 # long enough for it to count, short enough not to be felt.
-rule="$(mktemp -d)/rule.json"
+#
+# --- R500 presenter ---
+#
+# The remote talks to the Mac through a Logi Bolt receiver (vendor 0x046d,
+# product 0xc540) and in its default mode sends plain right_arrow and
+# left_arrow for the forward and back buttons. The device_if condition is
+# the whole point: without it, Right Arrow in every text editor would also
+# flip Spaces. With it, the remap only fires for events from the receiver,
+# and other arrow keys stay arrow keys.
+#
+# The target is ctrl+right_arrow / ctrl+left_arrow — macOS's own
+# "Move right/left a space" shortcut. Native fullscreen apps appear as
+# adjacent Spaces, so fullscreening two of them and tapping the remote
+# toggles between them. Nothing AeroSpace-specific; AeroSpace workspaces
+# ride on top of a single Space and the remote does not touch them.
+#
+# One known limitation: pair any other Logi device through the same Bolt
+# receiver and its arrow keys will be caught by the same rule. The MX Keys
+# S in this setup is on Bluetooth and reports under a different vendor id,
+# so it is unaffected. If this ever bites, Karabiner's device_if also
+# accepts `location_id`, which is per-receiver-port.
+#
+# One precondition: the shortcut has to be enabled in System Settings →
+# Keyboard → Keyboard Shortcuts → Mission Control → "Move left/right a
+# space". It is on by default on a fresh macOS, but Mission Control's
+# shortcuts are a common thing to turn off.
+RULES_DIR="$(mktemp -d)"
+RULE_LEADER="$RULES_DIR/leader.json"
+RULE_R500="$RULES_DIR/r500.json"
 
-cat > "$rule" <<'JSON'
+cat > "$RULE_LEADER" <<'JSON'
 {
   "description": "davconf: caps lock is the AeroSpace leader (hold -> cmd+ctrl+alt, tap -> caps lock)",
   "manipulators": [
@@ -199,24 +236,98 @@ cat > "$rule" <<'JSON'
 }
 JSON
 
-# --- is it already installed? ------------------------------------------------
-# Four things have to agree: the asset file, which is what the Karabiner UI
-# lists; the rule inside the active profile, which is what actually runs; the
+cat > "$RULE_R500" <<'JSON'
+{
+  "description": "davconf: Logitech R500 presenter switches macOS Spaces (forward/back -> ctrl+right/left)",
+  "manipulators": [
+    {
+      "type": "basic",
+      "from": {
+        "key_code": "right_arrow",
+        "modifiers": {
+          "optional": [
+            "any"
+          ]
+        }
+      },
+      "to": [
+        {
+          "key_code": "right_arrow",
+          "modifiers": [
+            "left_control"
+          ]
+        }
+      ],
+      "conditions": [
+        {
+          "type": "device_if",
+          "identifiers": [
+            {
+              "vendor_id": 1133,
+              "product_id": 50496,
+              "is_keyboard": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "basic",
+      "from": {
+        "key_code": "left_arrow",
+        "modifiers": {
+          "optional": [
+            "any"
+          ]
+        }
+      },
+      "to": [
+        {
+          "key_code": "left_arrow",
+          "modifiers": [
+            "left_control"
+          ]
+        }
+      ],
+      "conditions": [
+        {
+          "type": "device_if",
+          "identifiers": [
+            {
+              "vendor_id": 1133,
+              "product_id": 50496,
+              "is_keyboard": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+JSON
+
+# --- are they already installed? --------------------------------------------
+# Four things have to agree: the asset files, which are what the Karabiner UI
+# lists; the rules inside the active profile, which is what actually runs; the
 # keyboard type, which is what keeps § and < the right way round; and the
 # absence of the fn-era asset this module used to write. Only the middle two
-# change behaviour — the asset is there so the rule can be seen, and removed,
-# the way every other Karabiner rule can.
+# change behaviour — the assets are there so the rules can be seen, and
+# removed, the way every other Karabiner rule can.
 current=no
-if [ -f "$ASSET" ] && cmp -s "$rule" "$ASSET" && [ ! -e "$LEGACY_ASSET" ] && [ -f "$CONFIG" ]; then
-  python3 - "$CONFIG" "$rule" "$MARKER" "$KEYBOARD_TYPE" <<'PY' && current=yes
+if [ -f "$ASSET_LEADER" ] && cmp -s "$RULE_LEADER" "$ASSET_LEADER" \
+   && [ -f "$ASSET_R500" ] && cmp -s "$RULE_R500" "$ASSET_R500" \
+   && [ ! -e "$LEGACY_ASSET" ] && [ -f "$CONFIG" ]; then
+  python3 - "$CONFIG" "$MARKER" "$KEYBOARD_TYPE" "$RULE_LEADER" "$RULE_R500" <<'PY' && current=yes
 import json, sys
 
-config_path, rule_path, marker, keyboard_type = sys.argv[1:5]
+config_path, marker, keyboard_type, *rule_paths = sys.argv[1:]
 try:
     with open(config_path) as f:
         config = json.load(f)
-    with open(rule_path) as f:
-        rule = json.load(f)
+    expected = []
+    for p in rule_paths:
+        with open(p) as f:
+            expected.append(json.load(f))
 except (OSError, ValueError):
     sys.exit(1)
 
@@ -227,9 +338,10 @@ if not profiles:
 # Every profile, not just the selected one: switching profile should not
 # silently switch the leader key off.
 for profile in profiles:
-    rules = profile.get("complex_modifications", {}).get("rules", [])
-    if not any(r == rule for r in rules):
-        sys.exit(1)
+    installed = profile.get("complex_modifications", {}).get("rules", [])
+    for rule in expected:
+        if not any(r == rule for r in installed):
+            sys.exit(1)
     if profile.get("virtual_hid_keyboard", {}).get("keyboard_type_v2") != keyboard_type:
         sys.exit(1)
 sys.exit(0)
@@ -238,6 +350,7 @@ fi
 
 if [ "$current" = yes ]; then
   printf '    %-24s up to date\n' "caps lock leader"
+  printf '    %-24s up to date\n' "R500 presenter"
   printf '    %-24s up to date, %s\n' "keyboard type" "$KEYBOARD_TYPE"
   report_liveness
   exit 0
@@ -245,34 +358,38 @@ fi
 
 if [ "$mode" = check ]; then
   printf '    %-24s would be installed\n' "caps lock leader"
+  printf '    %-24s would be installed\n' "R500 presenter"
   printf '    %-24s would be set to %s\n' "keyboard type" "$KEYBOARD_TYPE"
   report_liveness
   exit 0
 fi
 
 # --- install ----------------------------------------------------------------
-mkdir -p "$(dirname "$ASSET")"
-cp "$rule" "$ASSET"
+mkdir -p "$(dirname "$ASSET_LEADER")"
+cp "$RULE_LEADER" "$ASSET_LEADER"
+cp "$RULE_R500" "$ASSET_R500"
 rm -f "$LEGACY_ASSET"
 
 if [ -f "$CONFIG" ]; then
   cp "$CONFIG" "$CONFIG.$BACKUP_SUFFIX"
 fi
 
-python3 - "$CONFIG" "$rule" "$MARKER" "$KEYBOARD_TYPE" <<'PY'
+python3 - "$CONFIG" "$MARKER" "$KEYBOARD_TYPE" "$RULE_LEADER" "$RULE_R500" <<'PY'
 import json, os, sys
 
-config_path, rule_path, marker, keyboard_type = sys.argv[1:5]
+config_path, marker, keyboard_type, *rule_paths = sys.argv[1:]
 
-with open(rule_path) as f:
-    rule = json.load(f)
+rules_to_install = []
+for p in rule_paths:
+    with open(p) as f:
+        rules_to_install.append(json.load(f))
 
 if os.path.exists(config_path):
     with open(config_path) as f:
         config = json.load(f)
 else:
     # Karabiner has never run here. It fills in every key it wants on first
-    # launch, so the smallest valid file is enough to carry the rule until then.
+    # launch, so the smallest valid file is enough to carry the rules until then.
     config = {"profiles": [{"name": "Default profile", "selected": True}]}
 
 profiles = config.setdefault("profiles", [])
@@ -281,12 +398,12 @@ if not profiles:
 
 for profile in profiles:
     complex_mods = profile.setdefault("complex_modifications", {})
-    rules = complex_mods.setdefault("rules", [])
+    installed = complex_mods.setdefault("rules", [])
     # Drop whatever this repo put here before — by marker, so a rule the user
     # added themselves is never touched, and the old fn rule goes with it —
-    # then add the current one.
-    rules[:] = [r for r in rules if not str(r.get("description", "")).startswith(marker)]
-    rules.append(rule)
+    # then add the current ones.
+    installed[:] = [r for r in installed if not str(r.get("description", "")).startswith(marker)]
+    installed.extend(rules_to_install)
 
     # Unrelated to the leader, and not optional: left at its ANSI default the
     # virtual keyboard makes macOS swap § and <. Only this key is set, so
@@ -299,6 +416,7 @@ with open(config_path, "w") as f:
 PY
 
 printf '    %-24s installed\n' "caps lock leader"
+printf '    %-24s installed\n' "R500 presenter"
 printf '    %-24s set to %s\n' "keyboard type" "$KEYBOARD_TYPE"
 
 # Karabiner watches this file and reloads on its own, so there is nothing to

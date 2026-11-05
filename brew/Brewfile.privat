@@ -1,8 +1,9 @@
 # Machines with no install restrictions.
 #
 # Not just personal apps: work machines are not permitted to install gh,
-# docker, Cursor and friends, so anything that cannot go on a restricted
-# machine belongs here rather than in common.
+# Cursor and friends, so anything that cannot go on a restricted machine
+# belongs here rather than in common. Docker itself is in common now that the
+# setup is CLI + colima rather than the Docker Desktop cask.
 
 # Third-party tap. Homebrew keeps trust in a machine-local ~/.homebrew/trust.json,
 # which a Brewfile cannot set, so on a brand-new machine run once:
@@ -10,13 +11,11 @@
 tap "arthur-ficial/tap", "https://github.com/Arthur-Ficial/homebrew-tap", trusted: true
 
 brew "gh"          # GitHub CLI
-brew "docker"      # CLI only; the daemon comes from the docker-desktop cask
 brew "ffmpeg"
 brew "qrtool"
 cask "tableplus"
 cask "cursor"
 cask "claude-code"
-cask "docker-desktop"
 
 # mobile — the Android SDK and fvm install outside Homebrew; zshrc puts
 # $ANDROID_SDK_ROOT/platform-tools and ~/fvm/default/bin on $PATH
