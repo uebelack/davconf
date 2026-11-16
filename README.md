@@ -1184,7 +1184,7 @@ the tiling window manager installed by `Brewfile.common`. An existing real file
 is backed up first, and a link that already points here is left alone.
 
 ```sh
-./aerospace/update.sh          # link the config
+./aerospace/update.sh          # link the config and new-window.sh
 ./aerospace/update.sh --check  # report what would change, change nothing
 ```
 
@@ -1229,6 +1229,26 @@ time as their characters were missed — are bound again.
 Every `move-node-to-workspace` binding carries `--focus-follows-window`: sending
 a window to a workspace takes you with it, rather than leaving you staring at
 the space it just left.
+
+Every new window gets a workspace of its own. AeroSpace's instinct is to tile a
+new window beside whatever is focused; an `on-window-detected` callback runs
+`aerospace/new-window.sh` instead, which sends a window that appears somewhere
+occupied to the first empty workspace on its monitor, and focus with it — so an
+app opens fullscreen, alone. Splitting becomes something you ask for: move a
+window onto an occupied workspace with `caps+shift+<ws>` and the two tile left
+and right. Floating windows (dialogs) are left where they appear. The script is
+linked to `~/.config/aerospace/new-window.sh` — beside the shadowed XDG config,
+not in it.
+
+macOS native tabs need one more rule. To the accessibility API each tab is a
+window of its own, so AeroSpace tiles a new tab beside the old one, and macOS —
+which insists every tab in a group shares one frame — draws the group in one
+half and leaves the other empty. For the apps in the script's `TAB_APPS` (Fork,
+for now) a new window that lands next to one of the same app is treated as a
+tab: joined with it and stacked as an accordion, so the tabs share one tile.
+`accordion-padding = 0` is what makes that one frame rather than two offset by
+the padding. The price of listing an app: a genuine second window of it
+(cmd+N) is stacked too, rather than getting a workspace of its own.
 
 `auto-reload-config = false` is left as it was, which is fine — this script
 reloads explicitly, and that is more reliable than a file watcher pointed at a

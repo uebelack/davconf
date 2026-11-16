@@ -2,7 +2,7 @@
 #
 # Link this repo's AeroSpace configuration into place.
 #
-#   ./aerospace/update.sh          # link ~/.aerospace.toml
+#   ./aerospace/update.sh          # link ~/.aerospace.toml and new-window.sh
 #   ./aerospace/update.sh --check  # report what would change, change nothing
 #
 # Safe to run any time: the link is created only when it is missing or points
@@ -31,35 +31,43 @@ for arg in "$@"; do
   esac
 done
 
-src="$DAVCONF_DIR/aerospace/aerospace.toml"
-dest="$HOME/.aerospace.toml"
-
 info "Linking AeroSpace configuration"
 
-# The XDG path is the fallback AeroSpace never reaches while the link above
+# The XDG path is the fallback AeroSpace never reaches while ~/.aerospace.toml
 # exists. Say so rather than delete somebody's file.
 xdg="$HOME/.config/aerospace/aerospace.toml"
-[ -e "$xdg" ] && warn "$xdg is shadowed by $dest and is not being read"
+[ -e "$xdg" ] && warn "$xdg is shadowed by $HOME/.aerospace.toml and is not being read"
 
-linked=no
-if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
-  printf '    %-24s already linked\n' "aerospace.toml"
-  linked=yes
-elif [ "$mode" = check ]; then
-  if [ -e "$dest" ] || [ -L "$dest" ]; then
-    warn "$dest would be backed up and replaced with a link to $src"
-  else
-    warn "$dest would be linked to $src"
+# link <file in aerospace/> <destination>
+changed=no
+link() {
+  local src="$DAVCONF_DIR/aerospace/$1" dest="$2"
+  if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
+    printf '    %-24s already linked\n' "$1"
+    return
   fi
-  exit 0
-else
+  changed=yes
+  if [ "$mode" = check ]; then
+    if [ -e "$dest" ] || [ -L "$dest" ]; then
+      warn "$dest would be backed up and replaced with a link to $src"
+    else
+      warn "$dest would be linked to $src"
+    fi
+    return
+  fi
   if [ -e "$dest" ] || [ -L "$dest" ]; then
     warn "backing up $dest -> $dest.$BACKUP_SUFFIX"
     mv "$dest" "$dest.$BACKUP_SUFFIX"
   fi
+  mkdir -p "$(dirname "$dest")"
   ln -s "$src" "$dest"
-  printf '    %-24s linked\n' "aerospace.toml"
-fi
+  printf '    %-24s linked\n' "$1"
+}
+
+link aerospace.toml "$HOME/.aerospace.toml"
+# Run by the on-window-detected callback. It sits beside the shadowed XDG
+# config, not in it — only aerospace.toml there would be a second config.
+link new-window.sh "$HOME/.config/aerospace/new-window.sh"
 
 [ "$mode" = check ] && exit 0
 
@@ -72,6 +80,6 @@ if pgrep -x AeroSpace >/dev/null 2>&1 && command -v aerospace >/dev/null; then
     warn "aerospace reload-config failed:"
     printf '%s\n' "$out" | sed 's/^/    /'
   fi
-elif [ "$linked" = no ]; then
+elif [ "$changed" = yes ]; then
   info "AeroSpace is not running — the config applies the next time it starts."
 fi
