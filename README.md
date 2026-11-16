@@ -1359,6 +1359,53 @@ The three PNGs are committed so a fresh checkout can load the theme straight
 away. They are drawn by `chrome/theme-art.py` — stdlib only, no Pillow — which
 `update.sh` re-runs whenever the script is newer than what it produced.
 
+## Wallpapers
+
+Two sets, same palette, same illustrator:
+
+| Set | Size | For |
+| --- | --- | --- |
+| `wallpapers/synthwave-85/` | 5504×3072 | the Macs |
+| `wallpapers/synthwave-85-phone/` | 3072×5504 | the iPhone |
+
+Ten scenes each, and they are the same ten — the outrun horizon, the neon
+skyline, the alley after rain, the arcade at closing time — so a desk and a
+phone are looking at one world from two angles rather than at two different
+wallpaper packs.
+
+Every image has a `.md` sidecar next to it holding the exact prompt and the
+settings that produced it. That is what makes the set extensible rather than
+found: a scene can be regenerated, or a new one written by copying a sidecar
+and changing only its `SUBJECT` paragraph. The prompts share three fixed
+blocks — the flat-vector rendering style, the colour discipline, and the
+framing rules — and `palette/update.sh` checks that the colour discipline
+paragraph still lists exactly the hexes in `palette/synthwave-85.json`.
+
+The phone set is not the desktop set cropped. A 16:9 scene cut to the shape of
+a phone screen keeps about a quarter of its width, which is not a crop so much
+as a different picture, so every subject was restaged vertically: the horizon dropped to three fifths down, the focal
+element moved low and centred, detail pushed into the bottom third, and the
+sky given the height it needs. The framing block adds one rule a desktop
+wallpaper does not need — the top third of the frame is the quietest and
+darkest part of the image, with nothing drawn in it, because that is where the
+clock and the date sit. It also has to say, at some length, that the artwork is
+not a screenshot: asked for a phone wallpaper, the model's first instinct is to
+paint a lock screen complete with a clock reading 12:03.
+
+These are 9:16, which is as tall as the generator goes and not quite as tall as
+the phone: an iPhone screen is 19.5:9, so filling it scales the image up by
+height and trims roughly a tenth off each side. That is the reason the focal
+element is centred and nothing that matters sits against the left or right
+edge — what is out there is texture, and it can go.
+
+Nothing installs these. On a Mac, point the wallpaper picker at the directory.
+On the phone, AirDrop the ones you want from Finder and set them in Photos —
+`Use as Wallpaper`, with Perspective Zoom off so the composition stays where it
+was framed to be. Note that iOS dims a lock screen wallpaper behind the clock
+on its own; these are already dark up there, so the two effects stack and the
+image can end up flatter than it looks in Photos. The alley and the arcade are
+the busiest near the top of the frame and read better as home screens.
+
 ## Terminal greeting
 
 Every new terminal opens with a Synthwave '85 sun and a panel of vitals:
