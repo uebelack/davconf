@@ -51,6 +51,22 @@ export PYENV_ROOT="$HOME/.pyenv"
 [ -d "$PYENV_ROOT/bin" ] && export PATH="$PYENV_ROOT/bin:$PATH"
 command -v pyenv >/dev/null && eval "$(pyenv init --path)"
 
+# Homebrew's ruby. The formula leaves its binaries in the keg instead of
+# linking them into /opt/homebrew/bin, so without this line `ruby` is the 2.6
+# that ships with macOS and `bundle` is the bundler 1.17 pinned to it — which
+# is no version any current Gemfile resolves against. Guarded like pyenv above:
+# the Linux box has no Homebrew, and a Mac without the formula should not get a
+# missing directory on $PATH.
+#
+# In this file rather than in ~/.zshrc because a Gemfile gets run by things
+# that never source ~/.zshrc — a build script, an IDE launched from Finder.
+#
+# rbenv, initialised in ~/.zshrc, prepends its shims *after* this file runs, so
+# a ruby installed through rbenv still wins for interactive shells. There is
+# none right now — `rbenv versions` lists only `system` and the shims directory
+# is empty — which is how the system ruby ended up answering in the first place.
+[ -d /opt/homebrew/opt/ruby/bin ] && export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
+
 # pipx installs its tools' launchers here. Lives in this file rather than in
 # ~/.zshrc so a script calling a pipx-installed tool finds it too.
 export PATH="$PATH:$HOME/.local/bin"

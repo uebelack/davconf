@@ -14,6 +14,10 @@ brew "jenv"
 brew "virtualenv"
 brew "pipx"
 
+# ruby — the keg's bin directory goes on $PATH in zsh/zprofile, since macOS's
+# own ruby 2.6 would otherwise answer for `ruby` and `bundle`.
+brew "ruby"
+
 # jvm
 brew "maven"       # the `chuck` alias
 cask "temurin@17"
