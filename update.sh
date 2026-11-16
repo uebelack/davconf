@@ -137,6 +137,12 @@ run_module zsh
 # them underneath a working machine.
 run_module nvim
 
+# The palette every theme in this repo is a copy of. Configures nothing — it
+# reports the copies that have drifted away from palette/synthwave-85.json.
+# Above the macOS line because the two themes it checks, Ghostty's config and
+# the Neovim colour scheme, are both on the headless box too.
+run_module palette
+
 # --- macOS only --------------------------------------------------------------
 # Everything from here needs a screen in front of the machine. A terminal
 # emulator, a window manager, a keyboard remapper and four editor colour

@@ -1,0 +1,132 @@
+{
+  "name": "Synthwave '85",
+  "note": [
+    "The palette, in one machine-readable place. Every theme in this repo — the",
+    "Ghostty config, zsh, Neovim, VS Code, IntelliJ, the Chrome theme, the",
+    "wallpaper prompts — is this file, hand-written into each target's own",
+    "format. This is the file to change first; palette/update.sh then tells you",
+    "which targets disagree with it.",
+    "",
+    "It does not list every colour those themes contain. Anything a theme",
+    "derives — the VS Code washes like #f92aad33, their opaque equivalents in",
+    "nvim's blend() — is computed from these and is not duplicated here."
+  ],
+
+  "ui": {
+    "note": "What the terminal itself is painted with, as in ghostty/config.",
+    "background": "#1a1033",
+    "foreground": "#f92aad",
+    "cursor": "#00f0ff",
+    "cursorText": "#1a1033",
+    "selectionBackground": "#ff8b39",
+    "selectionForeground": "#1a1033",
+    "splitDivider": "#f92aad"
+  },
+
+  "ansi": {
+    "note": [
+      "The sixteen ANSI colours, index 0-15. Note index 5: ANSI magenta is the",
+      "softer #e45ab1, not the #f92aad the foreground uses — same hue, less",
+      "saturation. ghostty/config explains the trade."
+    ],
+    "colors": [
+      "#241b3a",
+      "#fe4450",
+      "#72f1b8",
+      "#fede5d",
+      "#03edf9",
+      "#e45ab1",
+      "#00f0ff",
+      "#d4c8ff",
+      "#495495",
+      "#ff6e6e",
+      "#a6ffcb",
+      "#fff59d",
+      "#6effff",
+      "#fb66c4",
+      "#8bfff5",
+      "#ffffff"
+    ]
+  },
+
+  "backgrounds": {
+    "note": "Darkest first. `bg` is the one everything else sits on.",
+    "abyss": "#0a0518",
+    "shadow": "#120a25",
+    "deep": "#150d2b",
+    "bg": "#1a1033",
+    "raised": "#1c1238",
+    "float": "#241b3a",
+    "line": "#2f2350",
+    "border": "#3b3163"
+  },
+
+  "text": {
+    "note": "Brightest first. `comment` is also ANSI bright black.",
+    "white": "#ffffff",
+    "fg": "#d4c8ff",
+    "muted": "#c3b6ef",
+    "dim": "#9d7fd0",
+    "faint": "#6e5c96",
+    "comment": "#495495"
+  },
+
+  "neon": {
+    "note": [
+      "The accents. `magentaAnsi` is the quieter ANSI 5 and is used by terminal",
+      "output only; syntax highlighting uses `magenta`."
+    ],
+    "coral": "#fe4450",
+    "coralBright": "#ff6e6e",
+    "green": "#72f1b8",
+    "greenBright": "#a6ffcb",
+    "gold": "#fede5d",
+    "goldBright": "#fff59d",
+    "blue": "#03edf9",
+    "blueBright": "#6effff",
+    "magenta": "#f92aad",
+    "magentaBright": "#fb66c4",
+    "magentaAnsi": "#e45ab1",
+    "hotpink": "#ff7edb",
+    "cyan": "#00f0ff",
+    "aqua": "#8bfff5",
+    "orange": "#ff8b39"
+  },
+
+  "roles": {
+    "note": [
+      "What each accent means, which is the part that has to stay the same",
+      "across targets for them to look like one theme rather than three that",
+      "rhyme. Values name a key in `neon` or `text`."
+    ],
+    "call": "cyan",
+    "string": "gold",
+    "keyword": "magenta",
+    "punctuation": "coral",
+    "error": "coral",
+    "type": "green",
+    "literal": "orange",
+    "variable": "fg",
+    "comment": "comment"
+  },
+
+  "wallpaper": {
+    "note": [
+      "The subset the image prompts in wallpapers/ are allowed to use, in the",
+      "order they are listed to the model. #2a2139 appears only here — it is a",
+      "shadow mass for the illustrations, not a UI colour."
+    ],
+    "colors": [
+      "#1a1033",
+      "#241b3a",
+      "#2a2139",
+      "#ff7edb",
+      "#f92aad",
+      "#00f0ff",
+      "#03edf9",
+      "#fe4450",
+      "#fede5d",
+      "#495495"
+    ]
+  }
+}

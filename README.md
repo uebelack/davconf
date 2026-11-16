@@ -105,6 +105,7 @@ brew trust --tap arthur-ficial/tap
 | `jenv/`     | Registers every installed JDK with jenv                    | both |
 | `zsh/`      | oh-my-zsh, spaceship prompt, plugins, `.zshrc` + `.zprofile` | both |
 | `nvim/`     | The Neovim config — lazy.nvim and its plugins, linked into `~/.config` | both |
+| `palette/`  | The Synthwave '85 palette itself, and a check that the themes still match it | both |
 | `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      | macOS |
 | `karabiner/`| Makes caps lock AeroSpace's leader, which AeroSpace cannot  | macOS |
 | `aerospace/`| The AeroSpace window manager config, linked into `$HOME`    | macOS |
@@ -982,6 +983,47 @@ which `git` has already pulled in on any machine this repo has run on.
 
 Note that `$EDITOR` is still `vim`, set in `zsh/zshrc`. Neovim is the one you
 open on purpose, not the one git drops you into.
+
+### palette
+
+`palette/synthwave-85.json` is the palette every theme in this repo is a copy
+of — the sixteen ANSI colours, the eight backgrounds, the six text shades, the
+fifteen neons, what each accent means, and the ten hexes the wallpaper prompts
+are allowed to use. It is the file to change first.
+
+Nothing is generated from it. The Ghostty config, the Neovim colour scheme, the
+two editor themes and the Chrome theme each carry structure a palette knows
+nothing about, so they stay hand-written — which means they can drift, and a
+colour that is one digit out in one of them is close to invisible until two
+windows are open side by side and one of them is slightly the wrong pink.
+
+`palette/update.sh` is what notices:
+
+```
+==> Checking the themes against palette/synthwave-85.json
+    ghostty/config: palette 6 is #00f0fe, the palette says #00f0ff
+    nvim colors: gold is #fede5e, the palette says #fede5d
+```
+
+It checks `ghostty/config` and `nvim/config/colors/synthwave-85.lua`, the two
+files that spell raw hexes out, and the `COLOUR DISCIPLINE` line of every
+wallpaper prompt. It does not check `vscode/`, `intellij/` or `chrome/`: those
+are full of colours derived from these — `#f92aad33` is magenta at 20% over the
+background, and the Neovim scheme's `blend()` mixes the same wash down to an
+opaque value — and a checker that did not understand the derivation could only
+report every one of them as a mismatch. A failure is a disagreement rather than
+a broken machine: either the theme is wrong, or the palette moved on purpose
+and the JSON is what needs the edit.
+
+For a target that wants the colours in some other form, `palette/palette.py`
+emits them rather than having them typed out again:
+
+```sh
+./palette/palette.py --emit css      # custom properties
+./palette/palette.py --emit swift    # a Color enum, for anything on iOS
+./palette/palette.py --emit json     # flattened name -> hex
+./palette/palette.py --emit ghostty  # the sixteen palette lines
+```
 
 ### vscode
 
