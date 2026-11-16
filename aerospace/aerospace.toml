@@ -36,7 +36,10 @@ enable-normalization-opposite-orientation-for-nested-containers = true
 # See: https://nikitabobko.github.io/AeroSpace/guide#layouts
 # The 'accordion-padding' specifies the size of accordion padding
 # You can set 0 to disable the padding feature
-accordion-padding = 30
+# 0, because new-window.sh stacks native tabs (Fork) as an accordion, and macOS
+# insists every tab in a group shares one frame. Any padding gives the tabs two
+# frames, and macOS and AeroSpace fight over them.
+accordion-padding = 0
 
 # Possible values: tiles|accordion
 default-root-container-layout = 'tiles'
@@ -246,3 +249,16 @@ gaps.outer.right =      0
     shift-j = ['join-with down', 'mode main']
     shift-k = ['join-with up', 'mode main']
     shift-l = ['join-with right', 'mode main']
+
+# Every new window gets a workspace of its own: a window that appears somewhere
+# already occupied is sent to the first empty workspace, and focus follows it.
+# Splitting is something you ask for, by moving a window onto an occupied
+# workspace (caps+shift+<ws>). Floating windows (dialogs) are left where they
+# are, and native tabs of the apps listed in the script are stacked rather
+# than split. The logic lives in new-window.sh, linked next to this file's
+# XDG fallback by aerospace/update.sh; AEROSPACE_WINDOW_ID tells it which
+# window is new.
+# See: https://nikitabobko.github.io/AeroSpace/guide#on-window-detected-callback
+[[on-window-detected]]
+    if = 'true'
+    run = 'exec-and-forget ~/.config/aerospace/new-window.sh'
