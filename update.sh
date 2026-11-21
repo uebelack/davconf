@@ -166,15 +166,38 @@ fi
 # next time a terminal opens.
 run_module ghostty
 
-# The leader key AeroSpace itself cannot provide: fn is not one of its four
-# modifiers and never reaches it, so Karabiner turns fn+key into cmd+ctrl+alt+key
-# below the level any hotkey sees. Runs before aerospace because the rule is
-# generated from that module's bindings.
-run_module karabiner
+# Window management is opt-in: only a machine with the `wm` brew profile gets
+# AeroSpace and Karabiner installed, so only that machine gets them configured.
+# The selection is worked out the same way brew/update.sh does it — profiles
+# named on the command line win over the machine's file, --all wins over both.
+wm_selected() {
+  local arg named=no
+  for arg in ${args+"${args[@]}"}; do
+    case "$arg" in
+      --all) return 0 ;;
+      -*)    ;;
+      wm)    return 0 ;;
+      *)     named=yes ;;
+    esac
+  done
+  [ "$named" = yes ] && return 1
+  local file="${XDG_CONFIG_HOME:-$HOME/.config}/davconf/profiles"
+  [ -f "$file" ] && sed -E 's/#.*//; s/[[:space:]]+//g' "$file" | grep -qx wm
+}
 
-# Window management. Just a symlink like the terminal config, but this one can
-# tell a running AeroSpace to re-read it, so it applies without a restart.
-run_module aerospace
+if wm_selected; then
+  # The leader key AeroSpace itself cannot provide: fn is not one of its four
+  # modifiers and never reaches it, so Karabiner turns caps lock into
+  # cmd+ctrl+alt below the level any hotkey sees. Runs before aerospace because
+  # the rule is generated from that module's bindings.
+  run_module karabiner
+
+  # Window management. Just a symlink like the terminal config, but this one can
+  # tell a running AeroSpace to re-read it, so it applies without a restart.
+  run_module aerospace
+else
+  info "No wm profile — skipping AeroSpace and Karabiner."
+fi
 
 # The browser, next to the terminal it shares a palette with. Builds the theme
 # and reports it; loading it is a one-off manual step Chrome allows no way
