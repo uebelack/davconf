@@ -93,6 +93,7 @@ One manual step on a brand-new machine: Homebrew keeps third-party tap trust in
 
 ```sh
 brew trust --tap arthur-ficial/tap
+brew trust --tap mattt/tap
 ```
 
 ## Modules
@@ -140,8 +141,8 @@ split into profiles so each machine installs only what it is actually for:
 | `dev`     | Toolchains: the version managers, Python, JVM              |
 | `cloud`   | AWS, Azure, gcloud, Terraform                              |
 | `privat`  | Machines with no install restrictions: GUI apps, general CLI tools, local AI, Spotify |
-
 | `wm`      | AeroSpace and Karabiner-Elements — and, with them, the `karabiner/` and `aerospace/` modules |
+
 **Which profiles a machine gets is machine-local and not committed.** It lives
 in `~/.config/davconf/profiles`, one name per line — so the same repo sets up a
 work laptop and a personal one differently:
@@ -151,8 +152,8 @@ work laptop and a personal one differently:
 dev
 cloud
 privat
-```
 wm
+```
 
 `brew/update.sh` writes that file the first time it runs, with every profile
 commented out, so there is something to edit rather than a blank page.
