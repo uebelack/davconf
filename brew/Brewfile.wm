@@ -1,0 +1,18 @@
+# Window management — the AeroSpace tiling window manager and the Karabiner
+# rules that give it a leader key.
+#
+# One profile for both, because neither is worth having without the other: the
+# Karabiner rule exists only to give AeroSpace a modifier it can bind. Selecting
+# this profile is also what makes update.sh run the karabiner/ and aerospace/
+# modules; without it they are skipped and their configs left alone.
+
+# AeroSpace is not in homebrew-core, only in the author's own tap. Its config
+# lives in aerospace/aerospace.toml in this repo.
+tap "nikitabobko/tap"
+cask "aerospace"
+
+# AeroSpace's leader key. Its modifiers are cmd, alt, ctrl and shift and
+# nothing else — fn never reaches it — so Karabiner is what turns caps lock into
+# a modifier AeroSpace can bind. On a Swiss German layout that matters: plain
+# alt is where [ ] | { } # @ ~ live. See karabiner/ in this repo.
+cask "karabiner-elements"

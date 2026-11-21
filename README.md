@@ -93,6 +93,7 @@ One manual step on a brand-new machine: Homebrew keeps third-party tap trust in
 
 ```sh
 brew trust --tap arthur-ficial/tap
+brew trust --tap mattt/tap
 ```
 
 ## Modules
@@ -107,8 +108,8 @@ brew trust --tap arthur-ficial/tap
 | `nvim/`     | The Neovim config — lazy.nvim and its plugins, linked into `~/.config` | both |
 | `palette/`  | The Synthwave '85 palette itself, and a check that the themes still match it | both |
 | `ghostty/`  | The Ghostty terminal config, linked into `~/.config`      | macOS |
-| `karabiner/`| Makes caps lock AeroSpace's leader, which AeroSpace cannot  | macOS |
-| `aerospace/`| The AeroSpace window manager config, linked into `$HOME`    | macOS |
+| `karabiner/`| Makes caps lock AeroSpace's leader, which AeroSpace cannot  | macOS, `wm` |
+| `aerospace/`| The AeroSpace window manager config, linked into `$HOME`    | macOS, `wm` |
 | `chrome/`   | The Synthwave '85 Chrome theme, and how to load it          | macOS |
 | `vscode/`   | The Synthwave '85 theme for VS Code and Cursor              | macOS |
 | `intellij/` | The Synthwave '85 theme for the JetBrains IDEs              | macOS |
@@ -140,6 +141,7 @@ split into profiles so each machine installs only what it is actually for:
 | `dev`     | Toolchains: the version managers, Python, JVM              |
 | `cloud`   | AWS, Azure, gcloud, Terraform                              |
 | `privat`  | Machines with no install restrictions: GUI apps, general CLI tools, local AI, Spotify |
+| `wm`      | AeroSpace and Karabiner-Elements — and, with them, the `karabiner/` and `aerospace/` modules |
 
 **Which profiles a machine gets is machine-local and not committed.** It lives
 in `~/.config/davconf/profiles`, one name per line — so the same repo sets up a
@@ -150,6 +152,7 @@ work laptop and a personal one differently:
 dev
 cloud
 privat
+wm
 ```
 
 `brew/update.sh` writes that file the first time it runs, with every profile
@@ -1180,7 +1183,7 @@ come for free.
 
 `aerospace/update.sh` links `~/.aerospace.toml` to `aerospace/aerospace.toml` in
 this repo — the config for [AeroSpace](https://nikitabobko.github.io/AeroSpace),
-the tiling window manager installed by `Brewfile.common`. An existing real file
+the tiling window manager installed by `Brewfile.wm`. An existing real file
 is backed up first, and a link that already points here is left alone.
 
 ```sh

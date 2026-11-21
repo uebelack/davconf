@@ -260,4 +260,5 @@ gaps.outer.right =      0
 # window is new.
 # See: https://nikitabobko.github.io/AeroSpace/guide#on-window-detected-callback
 [[on-window-detected]]
+    if = 'true'
     run = 'exec-and-forget ~/.config/aerospace/new-window.sh'

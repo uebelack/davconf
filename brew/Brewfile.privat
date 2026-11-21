@@ -5,10 +5,12 @@
 # belongs here rather than in common. Docker itself is in common now that the
 # setup is CLI + colima rather than the Docker Desktop cask.
 
-# Third-party tap. Homebrew keeps trust in a machine-local ~/.homebrew/trust.json,
+# Third-party taps. Homebrew keeps trust in a machine-local ~/.homebrew/trust.json,
 # which a Brewfile cannot set, so on a brand-new machine run once:
 #   brew trust --tap arthur-ficial/tap
+#   brew trust --tap mattt/tap
 tap "arthur-ficial/tap", "https://github.com/Arthur-Ficial/homebrew-tap", trusted: true
+tap "mattt/tap", trusted: true
 
 brew "gh"          # GitHub CLI
 brew "ffmpeg"
@@ -25,6 +27,7 @@ brew "swiftformat"
 brew "ollama", restart_service: :changed
 brew "openai-whisper"
 brew "arthur-ficial/tap/apfel"   # on-device Apple FoundationModels CLI
+cask "mattt/tap/iMCP"            # MCP server for Messages, Contacts, Calendar & co.
 
 brew "unixodbc"    # ODBC driver manager, for the SQL Server clients
 
