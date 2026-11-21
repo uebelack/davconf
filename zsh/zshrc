@@ -279,9 +279,11 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 [[ -f "$davconf_dir/autoupdate.zsh" ]] && source "$davconf_dir/autoupdate.zsh"
 unset davconf_dir
 
+# Vite+ (https://viteplus.dev). Its installer appends a line here with the
+# home directory baked in; this is that line, made safe for machines where
+# Vite+ is not installed.
+[[ -s "$HOME/.vite-plus/env" ]] && source "$HOME/.vite-plus/env"
+
 # THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
-
-# Vite+ bin (https://viteplus.dev)
-. "/Users/david/.vite-plus/env"
