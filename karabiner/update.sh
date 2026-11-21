@@ -107,7 +107,7 @@ EOM
   # from the outside; if the log is not there to read, the process check above
   # is as far as this can honestly go.
   guidance="$(grep -o 'settings_window_guidance_setup changed: [a-z]* -> [a-z]*' \
-              "$GUIDANCE_LOG" 2>/dev/null | tail -1 | awk '{print $NF}')"
+              "$GUIDANCE_LOG" 2>/dev/null | tail -1 | awk '{print $NF}' || true)"
   [ -z "$guidance" ] && return
   [ "$guidance" = none ] && return
 
